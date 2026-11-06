@@ -9,12 +9,14 @@ ERP para confeitaria artesanal: pedidos sob encomenda, fichas técnicas e custos
 | Fase | Escopo | Status |
 |---|---|---|
 | 1 · Fundação | Banco completo, segurança, autenticação, layout, dashboard, configurações | ✅ Entregue |
-| 2 · Cadastros e estoque | Clientes, fornecedores, produtos, insumos, movimentações | Banco pronto · interface pendente |
-| 3 · Produção e custos | Fichas técnicas, subpreparações, formação de preço | Banco pronto (cálculo de custo já funciona) |
-| 4 · Pedidos | Orçamentos, encomendas, agenda, baixa de insumos | Banco pronto · fluxo de status pendente |
-| 5 · Financeiro | Contas, fluxo de caixa, baixas | Banco pronto · funções de baixa pendentes |
-| 6 · Fidelidade | Programas, pontos, resgates | Banco pronto (movimentação de pontos já funciona) |
-| 7 · Site, relatórios, finalização | Site público SSR, blog, relatórios, exportações | Banco pronto |
+| 2 · Cadastros e estoque | Clientes, fornecedores, produtos (variações e personalização), insumos, lotes, compras, movimentações | ✅ Entregue |
+| 3 · Produção e custos | Receita por tamanho e tipo de forma dentro de Produtos (quantidades, rendimento em fatias/peso, custo por fatia, margem e preço sugerido) | ✅ Entregue |
+| 4 · Pedidos | Orçamentos, encomendas, fluxo de status, baixa de insumos, pagamentos, comprovante, agenda, solicitações do site | ✅ Entregue |
+| 5 · Financeiro | Contas a pagar/receber, parcelamento, baixas e estornos, fluxo de caixa, despesas fixas | ✅ Entregue |
+| 6 · Fidelidade | Programas, inscrição com indicação, pontos automáticos, recompensas e resgates | ✅ Entregue |
+| 7 · Site e relatórios | Vitrine, banners, blog/receitas, galeria, depoimentos, site público em `/site/:slug`, relatórios com CSV e PDF | ✅ Entregue |
+
+> As fases 2 a 7 usam as funções da migration `20261106000010_fluxos_operacionais.sql` (aplicada no Supabase em 06/11/2026).
 
 ## Rodando localmente
 
@@ -46,7 +48,7 @@ npm run dev
 
 ### Funções RPC disponíveis
 
-`criar_empresa`, `dashboard_resumo`, `busca_global`, `notificacoes`, `movimentar_estoque`, `estornar_movimentacao`, `recalcular_custo_ficha`, `movimentar_pontos`, `estornar_pontos`, `converter_unidade`, `site_solicitar_orcamento`, `excluir_empresa`.
+`criar_empresa`, `dashboard_resumo`, `busca_global`, `notificacoes`, `movimentar_estoque`, `estornar_movimentacao`, `recalcular_custo_ficha`, `movimentar_pontos`, `estornar_pontos`, `converter_unidade`, `site_solicitar_orcamento`, `excluir_empresa`, `confirmar_compra`, `cancelar_compra`, `pedido_alterar_status`, `pedido_registrar_pagamento`, `pedido_estornar_pagamento`, `baixar_conta_pagar`, `baixar_conta_receber`, `cancelar_conta`, `lancamento_avulso`, `estornar_lancamento`, `gerar_despesas_recorrentes`, `fidelidade_inscrever`, `resgatar_recompensa`, `cancelar_resgate`, `relatorio_gerencial`.
 
 ## Design system
 

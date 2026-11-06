@@ -27,7 +27,35 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null)
 
+/** Modo de visualização sem login: só em desenvolvimento e com VITE_SEM_LOGIN=true. */
+export const semLogin = import.meta.env.DEV && import.meta.env.VITE_SEM_LOGIN === 'true'
+
+const ID_DEMO = '00000000-0000-0000-0000-000000000000'
+const empresaDemo = { id: ID_DEMO, nome: 'Irmãos na Massa', nome_fantasia: 'Irmãos na Massa', logo_url: null, endereco: {} } as unknown as Empresa
+const perfilDemo = { id: ID_DEMO, nome: 'Visitante', empresa_atual_id: ID_DEMO } as unknown as Perfil
+const usuarioDemo = { id: ID_DEMO, email: 'visitante@local' } as unknown as User
+const estadoDemo: AuthState = {
+  carregando: false,
+  sessao: { user: usuarioDemo } as unknown as Session,
+  usuario: usuarioDemo,
+  perfil: perfilDemo,
+  vinculos: [{ empresa: empresaDemo, papel: 'proprietario' }],
+  empresa: empresaDemo,
+  papel: 'proprietario',
+  ehGestor: true,
+  ehAdmin: true,
+  recuperandoSenha: false,
+  recarregar: async () => {},
+  trocarEmpresa: async () => {},
+  sair: async () => {},
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  if (semLogin) return <AuthContext.Provider value={estadoDemo}>{children}</AuthContext.Provider>
+  return <AuthProviderReal>{children}</AuthProviderReal>
+}
+
+function AuthProviderReal({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const [sessao, setSessao] = useState<Session | null>(null)
   const [perfil, setPerfil] = useState<Perfil | null>(null)

@@ -3611,6 +3611,7 @@ export type Database = {
           produto_id: string
           rendimento_fatias: number | null
           tamanho: string | null
+          tipo_forma: string | null
           updated_at: string
         }
         Insert: {
@@ -3628,6 +3629,7 @@ export type Database = {
           produto_id: string
           rendimento_fatias?: number | null
           tamanho?: string | null
+          tipo_forma?: string | null
           updated_at?: string
         }
         Update: {
@@ -3645,6 +3647,7 @@ export type Database = {
           produto_id?: string
           rendimento_fatias?: number | null
           tamanho?: string | null
+          tipo_forma?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3676,6 +3679,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      // ---- 0010 · fluxos operacionais ----
+      confirmar_compra: {
+        Args: { p_compra: string; p_gerar_conta?: boolean; p_vencimento?: string; p_pago?: boolean; p_forma_pagamento?: string }
+        Returns: string
+      }
+      cancelar_compra: { Args: { p_compra: string; p_motivo: string }; Returns: undefined }
+      baixar_conta_pagar: {
+        Args: { p_conta: string; p_valor: number; p_data?: string; p_forma?: string; p_observacao?: string; p_chave?: string }
+        Returns: string
+      }
+      baixar_conta_receber: {
+        Args: { p_conta: string; p_valor: number; p_data?: string; p_forma?: string; p_observacao?: string; p_chave?: string }
+        Returns: string
+      }
+      cancelar_conta: { Args: { p_tipo: string; p_conta: string; p_motivo: string }; Returns: undefined }
+      lancamento_avulso: {
+        Args: { p_empresa: string; p_tipo: string; p_valor: number; p_descricao: string; p_categoria?: string; p_data?: string; p_forma?: string; p_chave?: string }
+        Returns: string
+      }
+      estornar_lancamento: { Args: { p_lancamento: string; p_motivo: string }; Returns: string }
+      gerar_despesas_recorrentes: { Args: { p_empresa: string; p_ate?: string }; Returns: number }
+      pedido_alterar_status: {
+        Args: { p_pedido: string; p_status: Database['public']['Enums']['status_pedido']; p_observacao?: string }
+        Returns: Database['public']['Tables']['pedidos']['Row']
+      }
+      pedido_registrar_pagamento: {
+        Args: { p_pedido: string; p_valor: number; p_forma?: string; p_data?: string; p_observacao?: string; p_chave?: string }
+        Returns: string
+      }
+      pedido_estornar_pagamento: { Args: { p_pagamento: string; p_motivo: string }; Returns: string }
+      fidelidade_inscrever: { Args: { p_programa: string; p_cliente: string; p_indicado_por?: string }; Returns: string }
+      resgatar_recompensa: { Args: { p_participante: string; p_recompensa: string; p_observacoes?: string }; Returns: string }
+      cancelar_resgate: { Args: { p_resgate: string; p_motivo: string }; Returns: undefined }
+      relatorio_gerencial: { Args: { p_empresa: string; p_inicio: string; p_fim: string }; Returns: Json }
       busca_global: {
         Args: { p_empresa: string; p_termo: string }
         Returns: {

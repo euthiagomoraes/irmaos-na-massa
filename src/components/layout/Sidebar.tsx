@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronsLeft, X } from 'lucide-react'
-import { navegacao, FASE_ATUAL } from '@/config/navegacao'
+import { navegacao, moduloDisponivel } from '@/config/navegacao'
 import { useAuth } from '@/contexts/AuthContext'
 import { Dica } from '@/components/ui'
 import { cn } from '@/lib/utils'
@@ -37,7 +37,7 @@ function Conteudo({ recolhida, onNavegar }: { recolhida: boolean; onNavegar?: ()
       <nav aria-label="Navegação principal" className="rolagem-fina flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
         {navegacao.map((item) => {
           const Icone = item.icone
-          const pendente = item.fase > FASE_ATUAL
+          const pendente = !moduloDisponivel(item)
           const link = (
             <NavLink
               key={item.rota}

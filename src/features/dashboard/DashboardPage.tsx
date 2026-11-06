@@ -38,7 +38,7 @@ function FiltroPeriodo({ preset, periodo, onPreset, onPersonalizado }: {
   const presets: PresetPeriodo[] = ['hoje', 'semana', 'mes', '30dias', 'personalizado']
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-      <div role="radiogroup" aria-label="Período" className="rolagem-fina -mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5">
+      <div role="radiogroup" aria-label="Período" className="-mx-1 flex gap-1 overflow-x-auto overflow-y-hidden px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {presets.map((p) => (
           <button
             key={p}
@@ -213,7 +213,7 @@ export function DashboardPage() {
             />
             <CartaoKpi
               rotulo="Lucro bruto" valor={formatarMoeda(k.lucro_bruto)} icone={<PiggyBank className="size-[18px]" />} negativo={k.lucro_bruto < 0}
-              ajuda="Faturamento menos o custo dos produtos vendidos (CMV), calculado pelas fichas técnicas no momento de cada pedido."
+              ajuda="Faturamento menos o custo dos produtos vendidos (CMV), calculado pelas receitas dos produtos no momento de cada pedido."
               detalhe={<span className="text-texto-suave">CMV: <strong className="numeros text-choco-800">{formatarMoeda(k.cmv)}</strong></span>}
             />
             <CartaoKpi

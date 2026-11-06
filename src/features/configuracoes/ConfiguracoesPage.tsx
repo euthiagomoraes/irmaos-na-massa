@@ -162,7 +162,7 @@ function AbaParametros() {
     <form onSubmit={handleSubmit((v) => salvar.mutate(v as z.infer<typeof esquemaParametros>))} noValidate>
       <fieldset disabled={!ehGestor} className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <Campo rotulo="Custo da hora de mão de obra (R$)" htmlFor="ch" erro={errors.custo_hora_mao_obra?.message} dica="Base para calcular a mão de obra nas fichas técnicas.">
+          <Campo rotulo="Custo da hora de mão de obra (R$)" htmlFor="ch" erro={errors.custo_hora_mao_obra?.message} dica="Base para calcular a mão de obra nas receitas dos produtos.">
             <Input id="ch" type="number" step="0.01" min={0} {...register('custo_hora_mao_obra')} />
           </Campo>
           <Campo rotulo="Margem de lucro padrão (%)" htmlFor="mg" erro={errors.margem_lucro_padrao?.message} dica="Sugestão inicial na formação de preço.">
@@ -261,7 +261,7 @@ function AbaEquipe() {
     administrador: 'Acesso total à gestão e às configurações.',
     gerente: 'Gestão do dia a dia, exclusões e estornos.',
     atendente: 'Pedidos, clientes e consultas.',
-    producao: 'Produção, fichas técnicas e estoque.',
+    producao: 'Produção, receitas e estoque.',
   }
   return (
     <div className="space-y-4">
@@ -296,7 +296,7 @@ export function ConfiguracoesPage() {
         <p className="mt-1 text-[14px] text-texto-suave">Dados da confeitaria, parâmetros do sistema e seu perfil.</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <nav aria-label="Seções" className="rolagem-fina flex gap-1 overflow-x-auto lg:flex-col">
+        <nav aria-label="Seções" className="flex gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] lg:flex-col [&::-webkit-scrollbar]:hidden">
           {abas.map((a) => (
             <button key={a.id} type="button" onClick={() => setAba(a.id)} aria-current={aba === a.id ? 'page' : undefined}
               className={cn('flex h-10 shrink-0 items-center gap-2.5 rounded-xl px-3.5 text-[14px] font-medium transition-colors',

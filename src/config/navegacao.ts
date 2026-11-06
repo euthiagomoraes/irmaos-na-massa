@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, ClipboardList, CalendarHeart, Cake, NotebookPen, Package, Users, Gift, Wallet, BarChart3, Settings, Globe,
+  LayoutDashboard, ClipboardList, CalendarHeart, Cake, Package, Users, Gift, Wallet, BarChart3, Settings, Globe,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -9,18 +9,20 @@ export interface ItemNavegacao {
   icone: LucideIcon
   /** Fase do plano em que o módulo é entregue. */
   fase: number
+  /** Módulo já entregue antes de a fase inteira ser concluída. */
+  pronto?: boolean
   descricao: string
   recursos: string[]
 }
 
-export const FASE_ATUAL = 1
+export const FASE_ATUAL = 7
 
 export const navegacao: ItemNavegacao[] = [
   { rota: '/', rotulo: 'Visão geral', icone: LayoutDashboard, fase: 1, descricao: 'Indicadores do negócio em tempo real.', recursos: [] },
   {
     rota: '/pedidos', rotulo: 'Pedidos', icone: ClipboardList, fase: 4,
     descricao: 'Orçamentos, encomendas personalizadas e acompanhamento da produção até a entrega.',
-    recursos: ['Orçamento → pedido com um clique', 'Personalizações (massa, recheio, cobertura, tema)', 'Pagamentos parciais e sinal', 'Baixa automática de insumos pela ficha técnica', 'Comprovante para impressão', 'Solicitações recebidas pelo site'],
+    recursos: ['Orçamento → pedido com um clique', 'Personalizações (massa, recheio, cobertura, tema)', 'Pagamentos parciais e sinal', 'Baixa automática de insumos pela receita do produto', 'Comprovante para impressão', 'Solicitações recebidas pelo site'],
   },
   {
     rota: '/agenda', rotulo: 'Agenda', icone: CalendarHeart, fase: 4,
@@ -33,17 +35,12 @@ export const navegacao: ItemNavegacao[] = [
     recursos: ['Bolos, docinhos, doces finos, cupcakes, mini bolos e kits', 'Variações com preço próprio (ex.: 15 cm · Especial)', 'Massas, recheios e coberturas do cardápio', 'Fotos e publicação na vitrine do site'],
   },
   {
-    rota: '/fichas', rotulo: 'Fichas técnicas', icone: NotebookPen, fase: 3,
-    descricao: 'Receitas com custo calculado automaticamente a partir do estoque.',
-    recursos: ['Subpreparações (massas, recheios, coberturas)', 'Custo de ingredientes, embalagem e mão de obra', 'Formação de preço e margem', 'Histórico de custos preservado'],
-  },
-  {
-    rota: '/estoque', rotulo: 'Insumos e estoque', icone: Package, fase: 2,
+    rota: '/estoque', rotulo: 'Estoque', icone: Package, fase: 2,
     descricao: 'Controle de ingredientes, embalagens e materiais com lotes e validade.',
-    recursos: ['Entradas, saídas e ajustes com histórico', 'Conversão kg/g, l/ml, unidade e medidas caseiras', 'Lotes com consumo do que vence primeiro', 'Alertas de estoque mínimo e validade', 'Fornecedores e compras'],
+    recursos: ['Entradas, saídas e ajustes com histórico', 'Conversão kg/g, l/ml, unidade e medidas caseiras', 'Lotes com consumo do que vence primeiro', 'Alertas de estoque mínimo e validade'],
   },
   {
-    rota: '/clientes', rotulo: 'Clientes', icone: Users, fase: 2,
+    rota: '/clientes', rotulo: 'Clientes', icone: Users, fase: 2, pronto: true,
     descricao: 'Ficha completa de cada cliente com histórico e preferências.',
     recursos: ['Histórico de compras e ticket médio', 'Aniversários próximos', 'Preferências e restrições', 'Participação na fidelidade'],
   },
@@ -79,3 +76,5 @@ export const nomesFases: Record<number, string> = {
   6: 'Fidelidade',
   7: 'Site, relatórios e finalização',
 }
+
+export const moduloDisponivel = (item: ItemNavegacao) => item.pronto === true || item.fase <= FASE_ATUAL

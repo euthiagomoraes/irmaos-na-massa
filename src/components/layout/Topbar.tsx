@@ -46,9 +46,10 @@ function BuscaGlobal({ aberta, onAbertaChange }: { aberta: boolean; onAbertaChan
   const resultados = useMemo(() => data ?? [], [data])
   useEffect(() => setAtivo(0), [resultados])
 
-  const abrir = (tipo: string) => {
+  const abrir = (tipo: string, id?: string) => {
     onAbertaChange(false)
-    navigate(rotasBusca[tipo] ?? '/')
+    const rota = rotasBusca[tipo] ?? '/'
+    navigate(tipo === 'cliente' && id ? `${rota}?id=${id}` : rota)
   }
 
   return (
@@ -67,7 +68,7 @@ function BuscaGlobal({ aberta, onAbertaChange }: { aberta: boolean; onAbertaChan
               onKeyDown={(e) => {
                 if (e.key === 'ArrowDown') { e.preventDefault(); setAtivo((a) => Math.min(a + 1, resultados.length - 1)) }
                 if (e.key === 'ArrowUp') { e.preventDefault(); setAtivo((a) => Math.max(a - 1, 0)) }
-                if (e.key === 'Enter' && resultados[ativo]) abrir(resultados[ativo].tipo)
+                if (e.key === 'Enter' && resultados[ativo]) abrir(resultados[ativo].tipo, resultados[ativo].id)
               }}
               placeholder="Buscar clientes, pedidos (#número), produtos, insumos…"
               className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-cinza"
@@ -94,7 +95,7 @@ function BuscaGlobal({ aberta, onAbertaChange }: { aberta: boolean; onAbertaChan
                       role="option"
                       aria-selected={i === ativo}
                       onMouseEnter={() => setAtivo(i)}
-                      onClick={() => abrir(r.tipo)}
+                      onClick={() => abrir(r.tipo, r.id)}
                       className={cn('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left', i === ativo && 'bg-rosa-100/70')}
                     >
                       <span className="grid size-8 place-items-center rounded-lg bg-creme text-cacau-600"><Icone className="size-4" /></span>
@@ -171,7 +172,7 @@ function Notificacoes() {
                 const Icone = iconesNotif[n.tipo] ?? Bell
                 return (
                   <Popover.Close asChild key={`${n.tipo}-${n.id}`}>
-                    <Link to={n.rota} className="flex gap-3 rounded-xl px-3 py-2.5 hover:bg-creme">
+                    <Link to={n.rota === '/clientes' ? `/clientes?id=${n.id}` : n.rota} className="flex gap-3 rounded-xl px-3 py-2.5 hover:bg-creme">
                       <span className={cn('mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg',
                         n.nivel === 'critico' ? 'bg-erro-fundo text-erro' : n.nivel === 'alerta' ? 'bg-alerta-fundo text-alerta' : 'bg-rosa-100 text-cacau-600')}>
                         <Icone className="size-4" />
