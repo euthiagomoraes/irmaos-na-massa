@@ -50,4 +50,17 @@ npm run dev
 
 ## Design system
 
-Tokens em `src/index.css` (derivados da logo): creme `#FFF8EF`, cacau `#8A3B24`, chocolate `#573D39`, rosa `#E9B8C5`, dourado `#C6A36A`. Tipografia: Playfair Display (títulos), DM Sans (interface), Parisienne (assinatura da marca) — hospedadas no próprio app. Séries de gráficos validadas para daltonismo e contraste. O bolo 3D é carregado sob demanda e substituído por ilustração 2D em celulares, sem WebGL ou com movimento reduzido.
+Todas as cores foram amostradas da logo oficial (`public/logo-original.png`) e estão em `src/index.css`:
+
+| Token | Cor | Origem na logo |
+|---|---|---|
+| `creme` | `#FEF1E0` | fundo da arte (a logo se funde ao fundo do app) |
+| `cacau-600` | `#7C350A` | letreiro “IrMãos na Massa” — cor principal, títulos e botões |
+| `choco-800` | `#4A2410` | textos |
+| `rosa-500` / `rosa-300` | `#E2745C` / `#F4A58E` | rosas e laço |
+| `dourado-500` / `dourado-600` | `#E2AB75` / `#D18A45` | suporte do bolo, estrelas e filetes |
+| `oliva-700` | `#5F6A2E` | folhas |
+
+Tipografia: **Fraunces** em modo “suave” (serifa arredondada como o letreiro) para títulos e valores, **DM Sans** para a interface e **Parisienne** para detalhes manuscritos. Todas hospedadas no próprio app. O ornamento “filete dourado + coração” (`<Ornamento />`) reproduz o detalhe da logo.
+
+Gráficos: caramelo `#8A3A0C`, rosa `#E06C78` e oliva `#6E7A2E`, validados para daltonismo e contraste. O bolo 3D usa as mesmas cores da logo, carrega sob demanda e vira ilustração 2D no celular, sem WebGL ou com movimento reduzido.

@@ -9,11 +9,11 @@ type Tamanho = 'sm' | 'md' | 'lg' | 'icone'
 
 const variantes: Record<Variante, string> = {
   primario:
-    'bg-cacau-600 text-white shadow-[0_1px_0_rgb(255_255_255/0.15)_inset,0_6px_16px_-6px_rgb(138_59_36/0.55)] hover:bg-cacau-700 active:bg-cacau-800',
+    'bg-cacau-600 text-white shadow-[0_1px_0_rgb(255_255_255/0.15)_inset,0_6px_16px_-6px_rgb(124_53_10/0.55)] hover:bg-cacau-700 active:bg-cacau-800',
   secundario: 'bg-rosa-100 text-cacau-700 hover:bg-rosa-200',
   contorno: 'border border-borda-forte bg-white text-choco-800 hover:border-cacau-500/40 hover:bg-cacau-50',
   fantasma: 'text-choco-700 hover:bg-rosa-100/70',
-  perigo: 'bg-erro text-white hover:bg-[#932f2f]',
+  perigo: 'bg-erro text-white hover:bg-[#8F2B21]',
   suave: 'bg-white/70 text-choco-800 hover:bg-white border border-borda',
 }
 const tamanhos: Record<Tamanho, string> = {

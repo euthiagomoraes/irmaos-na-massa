@@ -7,9 +7,9 @@ import {
 import { dataLocal, formatarMoeda, formatarMoedaCompacta, formatarNumero } from '@/lib/utils'
 
 /* Cores validadas (CVD + contraste) — ver src/index.css --color-serie-* */
-export const SERIES = { s1: '#8A3B24', s2: '#D9667F', s3: '#B8862A' }
-const EIXO = { stroke: '#6B5853', fontSize: 11.5, fontFamily: 'DM Sans Variable' }
-const GRADE = '#EFE1D4'
+export const SERIES = { s1: '#8A3A0C', s2: '#E06C78', s3: '#6E7A2E' }
+const EIXO = { fill: '#76553F', fontSize: 11.5, fontFamily: 'DM Sans Variable' }
+const GRADE = '#F0D9BF'
 
 export interface Serie { chave: string; nome: string; cor: string }
 
@@ -57,7 +57,7 @@ export function GraficoLinhas({ dados, series, agrupamento, altura = 260 }: { da
         <CartesianGrid stroke={GRADE} vertical={false} />
         <XAxis dataKey="data" tickFormatter={rotuloData(agrupamento)} tick={EIXO} axisLine={false} tickLine={false} minTickGap={24} />
         <YAxis tickFormatter={formatarMoedaCompacta} tick={EIXO} axisLine={false} tickLine={false} width={64} />
-        <Tooltip cursor={{ stroke: '#C6A36A', strokeDasharray: '4 4' }} content={<DicaGrafico rotulo={rotuloDataLongo(agrupamento)} />} />
+        <Tooltip cursor={{ stroke: '#D18A45', strokeDasharray: '4 4' }} content={<DicaGrafico rotulo={rotuloDataLongo(agrupamento)} />} />
         {series.map((s) => (
           <Line key={s.chave} type="monotone" dataKey={s.chave} name={s.nome} stroke={s.cor} strokeWidth={2} dot={dados.length <= 12 ? { r: 3, strokeWidth: 0, fill: s.cor } : false} activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }} />
         ))}
@@ -76,8 +76,8 @@ export function GraficoBarras({ dados, series, chaveX, rotuloX, rotuloDica, altu
         <CartesianGrid stroke={GRADE} vertical={false} />
         <XAxis dataKey={chaveX} tickFormatter={rotuloX} tick={EIXO} axisLine={false} tickLine={false} minTickGap={12} />
         <YAxis tickFormatter={formatarMoedaCompacta} tick={EIXO} axisLine={false} tickLine={false} width={64} />
-        <Tooltip cursor={{ fill: 'rgb(233 184 197 / 0.18)' }} content={<DicaGrafico rotulo={rotuloDica} />} />
-        {linhaZero && <ReferenceLine y={0} stroke="#B8A79E" />}
+        <Tooltip cursor={{ fill: 'rgb(244 165 142 / 0.16)' }} content={<DicaGrafico rotulo={rotuloDica} />} />
+        {linhaZero && <ReferenceLine y={0} stroke="#C9A98A" />}
         {series.map((s) => (
           <Bar key={s.chave} dataKey={s.chave} name={s.nome} fill={s.cor} radius={[4, 4, 0, 0]} maxBarSize={28} />
         ))}
@@ -98,10 +98,10 @@ export function GraficoRanking({ dados, chave, nome, cor = SERIES.s1, moeda = tr
     <ResponsiveContainer width="100%" height={altura}>
       <BarChart data={dados} layout="vertical" margin={{ top: 4, right: 72, bottom: 4, left: 0 }} barCategoryGap="30%">
         <XAxis type="number" hide />
-        <YAxis type="category" dataKey="nome" tick={{ ...EIXO, fill: '#3E2723', fontSize: 12 }} axisLine={false} tickLine={false} width={150} interval={0} />
-        <Tooltip cursor={{ fill: 'rgb(233 184 197 / 0.18)' }} content={<DicaGrafico rotulo={(l) => l} moeda={moeda} />} />
+        <YAxis type="category" dataKey="nome" tick={{ ...EIXO, fill: '#4A2410', fontSize: 12 }} axisLine={false} tickLine={false} width={160} interval={0} />
+        <Tooltip cursor={{ fill: 'rgb(244 165 142 / 0.16)' }} content={<DicaGrafico rotulo={(l) => l} moeda={moeda} />} />
         <Bar dataKey={chave} name={nome} fill={cor} radius={[0, 4, 4, 0]} maxBarSize={22}>
-          <LabelList dataKey={chave} position="right" formatter={(v: unknown) => (moeda ? formatarMoedaCompacta(Number(v)) : formatarNumero(Number(v)))} style={{ fill: '#3E2723', fontSize: 12, fontWeight: 600 }} />
+          <LabelList dataKey={chave} position="right" formatter={(v: unknown) => (moeda ? formatarMoedaCompacta(Number(v)) : formatarNumero(Number(v)))} style={{ fill: '#4A2410', fontSize: 12, fontWeight: 600 }} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

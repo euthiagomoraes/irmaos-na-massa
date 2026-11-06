@@ -5,6 +5,7 @@ import { navegacao, FASE_ATUAL } from '@/config/navegacao'
 import { useAuth } from '@/contexts/AuthContext'
 import { Dica } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { LogoCompleta, Ornamento, SeloMarca } from '@/components/marca'
 
 interface Props {
   recolhida: boolean
@@ -15,17 +16,23 @@ interface Props {
 
 function Conteudo({ recolhida, onNavegar }: { recolhida: boolean; onNavegar?: () => void }) {
   const { empresa } = useAuth()
+  const logoPropria = empresa?.logo_url
   return (
     <>
-      <div className={cn('flex items-center gap-3 px-4 pt-5 pb-4', recolhida && 'justify-center px-2')}>
-        <img src="/icone.png" alt="" className="size-11 shrink-0 rounded-full ring-2 ring-white shadow-suave" />
-        {!recolhida && (
-          <div className="min-w-0 leading-tight">
-            <p className="truncate font-display text-[17px] font-semibold text-cacau-700">{empresa?.nome ?? 'Irmãos na Massa'}</p>
-            <p className="text-[10.5px] font-semibold tracking-[0.18em] text-dourado-700 uppercase">Confeitaria artesanal</p>
-          </div>
-        )}
-      </div>
+      {recolhida ? (
+        <div className="flex justify-center px-2 pt-5 pb-4">
+          <SeloMarca className="size-12 ring-2 ring-dourado-300/70" />
+        </div>
+      ) : (
+        <div className="px-5 pt-3 pb-3">
+          {logoPropria ? (
+            <img src={logoPropria} alt={empresa?.nome ?? 'Logo'} className="mx-auto aspect-square w-[168px] object-contain" />
+          ) : (
+            <LogoCompleta className="mx-auto w-[196px]" />
+          )}
+          <Ornamento className="mt-1" />
+        </div>
+      )}
 
       <nav aria-label="Navegação principal" className="rolagem-fina flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
         {navegacao.map((item) => {
@@ -39,8 +46,8 @@ function Conteudo({ recolhida, onNavegar }: { recolhida: boolean; onNavegar?: ()
               onClick={onNavegar}
               className={({ isActive }) =>
                 cn(
-                  'group relative flex h-10 items-center gap-3 rounded-xl px-3 text-[14px] font-medium text-choco-700 transition-colors hover:bg-white/70 hover:text-cacau-700',
-                  isActive && 'bg-white text-cacau-700 shadow-suave',
+                  'group relative flex h-10 items-center gap-3 rounded-xl px-3 text-[14px] font-medium text-choco-700 transition-colors hover:bg-creme-claro hover:text-cacau-700',
+                  isActive && 'bg-white text-cacau-700 shadow-suave ring-1 ring-borda',
                   recolhida && 'justify-center px-0',
                 )
               }
@@ -78,8 +85,8 @@ export function Sidebar({ recolhida, onAlternar, movelAberta, onFecharMovel }: P
       {/* Desktop */}
       <aside
         className={cn(
-          'sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-borda/70 bg-gradient-to-b from-rosa-50 via-creme to-creme transition-[width] duration-300 lg:flex',
-          recolhida ? 'w-[76px]' : 'w-[264px]',
+          'sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-borda bg-creme transition-[width] duration-300 lg:flex',
+          recolhida ? 'w-[80px]' : 'w-[264px]',
         )}
       >
         <Conteudo recolhida={recolhida} />
@@ -104,7 +111,7 @@ export function Sidebar({ recolhida, onAlternar, movelAberta, onFecharMovel }: P
             initial={{ x: -300 }}
             animate={{ x: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
-            className="absolute inset-y-0 left-0 flex w-[280px] max-w-[85vw] flex-col bg-gradient-to-b from-rosa-50 to-creme shadow-elevada"
+            className="absolute inset-y-0 left-0 flex w-[280px] max-w-[85vw] flex-col bg-creme shadow-elevada"
           >
             <button type="button" onClick={onFecharMovel} aria-label="Fechar menu" className="absolute top-4 right-3 grid size-9 place-items-center rounded-lg text-choco-700 hover:bg-white/70">
               <X className="size-5" />

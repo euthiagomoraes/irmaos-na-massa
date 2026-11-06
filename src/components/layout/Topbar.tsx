@@ -13,6 +13,7 @@ import { useAuth, useEmpresa, nomesPapeis } from '@/contexts/AuthContext'
 import { Badge, Dica } from '@/components/ui'
 import { cn, iniciais, mensagemErro } from '@/lib/utils'
 import { toast } from 'sonner'
+import { SeloMarca } from '@/components/marca'
 
 /* ------------------------------------------------------------ Busca global */
 const iconesBusca = { cliente: UserRound, pedido: ClipboardList, produto: Cake, insumo: Package } as const
@@ -267,6 +268,7 @@ export function Topbar({ onAbrirMenu }: { onAbrirMenu: () => void }) {
         <button type="button" onClick={onAbrirMenu} className="grid size-10 place-items-center rounded-xl text-choco-700 hover:bg-white lg:hidden" aria-label="Abrir menu">
           <MenuIcon className="size-5" />
         </button>
+        <SeloMarca className="size-9 shrink-0 ring-1 ring-dourado-300 lg:hidden" />
 
         <button
           type="button"

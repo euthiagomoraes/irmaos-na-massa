@@ -8,13 +8,13 @@ import * as THREE from 'three'
  * Inclina suavemente seguindo o ponteiro e gira devagar.
  */
 const cores = {
-  creme: '#F7E6CF',
-  chocolate: '#6B2E1A',
-  suporte: '#D9AE6E',
-  rosa: '#E98A97',
-  rosaClara: '#F4B5BE',
-  folha: '#7C8A55',
-  florBranca: '#FFF6EA',
+  creme: '#FBE3C4',
+  chocolate: '#7B2C05',
+  suporte: '#EEA261',
+  rosa: '#E2745C',
+  rosaClara: '#F4A58E',
+  folha: '#7F7A40',
+  florBranca: '#FFF3E2',
 }
 
 function Rosa({ posicao, escala = 1, cor = cores.rosa }: { posicao: [number, number, number]; escala?: number; cor?: string }) {
@@ -134,7 +134,7 @@ export default function Bolo3D({ className }: { className?: string }) {
       >
         <ambientLight intensity={0.85} color="#FFF4E8" />
         <directionalLight position={[3, 5, 4]} intensity={1.4} color="#FFE9D2" />
-        <directionalLight position={[-4, 2, -2]} intensity={0.5} color="#F4B5BE" />
+        <directionalLight position={[-4, 2, -2]} intensity={0.5} color="#F4A58E" />
         <Bolo />
       </Canvas>
     </div>

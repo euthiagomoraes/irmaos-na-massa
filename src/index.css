@@ -2,65 +2,84 @@
 
 /* =====================================================================
    Design system · Irmãos na Massa
-   Derivado da identidade visual (logo e materiais da confeitaria):
-   creme de fundo, cacau/chocolate na tipografia, rosa e dourado nos detalhes.
+   Todas as cores foram amostradas diretamente da logo oficial:
+   - creme do fundo .................. #FEF1E0
+   - caramelo das letras ............. #7C350A
+   - calda de chocolate .............. #7B2C05 / #B04F17
+   - rosas e laço (salmão/pêssego) ... #E2745C / #F4A58E / #FAB39E
+   - suporte e estrelas (âmbar) ...... #EEA261 / #E2AB75
+   - folhas (oliva) .................. #6A5122 / #8A8650
+   Tipografia: Fraunces "suave" (serifa arredondada como o letreiro),
+   Parisienne (os arabescos da logo) e DM Sans (interface).
    ===================================================================== */
 @theme {
   --font-sans: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-display: "Fraunces Variable", "Fraunces", ui-serif, Georgia, serif;
   --font-script: "Parisienne", cursive;
 
-  --color-creme: #FFF8EF;
-  --color-creme-escuro: #F7EADB;
-  --color-borda: #EFE1D4;
-  --color-borda-forte: #E2CDBB;
+  /* Fundos */
+  --color-creme: #FEF1E0;
+  --color-creme-claro: #FFF8EF;
+  --color-creme-escuro: #F8E2C8;
+  --color-borda: #F0D9BF;
+  --color-borda-forte: #E3C29E;
 
-  --color-rosa-50: #FDF5F7;
-  --color-rosa-100: #F8E9ED;
-  --color-rosa-200: #F2D3DB;
-  --color-rosa-300: #E9B8C5;
-  --color-rosa-500: #D9667F;
-  --color-rosa-700: #A83F57;
+  /* Rosa salmão (rosas, laço) */
+  --color-rosa-50: #FFF5EF;
+  --color-rosa-100: #FDE6DA;
+  --color-rosa-200: #FBCDB9;
+  --color-rosa-300: #F4A58E;
+  --color-rosa-500: #E2745C;
+  --color-rosa-700: #B04A35;
 
-  --color-cacau-50: #FBF1EC;
-  --color-cacau-100: #F4DCD0;
-  --color-cacau-500: #A5502F;
-  --color-cacau-600: #8A3B24;
-  --color-cacau-700: #6F2E1C;
-  --color-cacau-800: #552314;
+  /* Caramelo (letreiro) — cor principal da marca */
+  --color-cacau-50: #FCF0E4;
+  --color-cacau-100: #F7DCC3;
+  --color-cacau-500: #B04F17;
+  --color-cacau-600: #7C350A;
+  --color-cacau-700: #652A07;
+  --color-cacau-800: #4E2005;
 
-  --color-choco-500: #8A6A64;
-  --color-choco-700: #573D39;
-  --color-choco-800: #3E2723;
-  --color-choco-900: #2A1916;
+  /* Chocolate (textos) */
+  --color-choco-500: #8C6448;
+  --color-choco-700: #5E3518;
+  --color-choco-800: #4A2410;
+  --color-choco-900: #33180A;
 
-  --color-dourado-100: #F6EEDF;
-  --color-dourado-300: #E3CB9F;
-  --color-dourado-500: #C6A36A;
-  --color-dourado-600: #B8862A;
-  --color-dourado-700: #8C6620;
+  /* Âmbar dourado (suporte do bolo, estrelas, filetes) */
+  --color-dourado-100: #FCEEDB;
+  --color-dourado-300: #F2C793;
+  --color-dourado-500: #E2AB75;
+  --color-dourado-600: #D18A45;
+  --color-dourado-700: #8C4A00;
 
-  --color-texto: #3E2723;
-  --color-texto-suave: #6B5853;
-  --color-cinza: #777777;
+  /* Oliva (folhas) */
+  --color-oliva-100: #EEEBD6;
+  --color-oliva-500: #8A8650;
+  --color-oliva-700: #5F6A2E;
 
-  --color-sucesso: #3F7A4A;
-  --color-sucesso-fundo: #EAF3EA;
-  --color-alerta: #9A6512;
-  --color-alerta-fundo: #FBF0DC;
-  --color-erro: #B03A3A;
-  --color-erro-fundo: #FBE9E7;
-  --color-info: #8A3B24;
-  --color-info-fundo: #FBF1EC;
+  --color-texto: #4A2410;
+  --color-texto-suave: #76553F;
+  --color-cinza: #8F7A6B;
+
+  /* Estados */
+  --color-sucesso: #4F6B25;
+  --color-sucesso-fundo: #EEF1DD;
+  --color-alerta: #8C4A00;
+  --color-alerta-fundo: #FCEBD2;
+  --color-erro: #B0362A;
+  --color-erro-fundo: #FCE5DF;
+  --color-info: #7C350A;
+  --color-info-fundo: #FCF0E4;
 
   /* Séries de gráficos (validadas para daltonismo e contraste) */
-  --color-serie-1: #8A3B24;
-  --color-serie-2: #D9667F;
-  --color-serie-3: #B8862A;
+  --color-serie-1: #8A3A0C;
+  --color-serie-2: #E06C78;
+  --color-serie-3: #6E7A2E;
 
   --radius-card: 1.25rem;
-  --shadow-suave: 0 1px 2px rgb(87 61 57 / 0.05), 0 4px 16px -4px rgb(87 61 57 / 0.08);
-  --shadow-elevada: 0 2px 4px rgb(87 61 57 / 0.06), 0 16px 40px -12px rgb(87 61 57 / 0.22);
+  --shadow-suave: 0 1px 2px rgb(124 53 10 / 0.05), 0 4px 16px -4px rgb(124 53 10 / 0.09);
+  --shadow-elevada: 0 2px 4px rgb(124 53 10 / 0.06), 0 18px 40px -12px rgb(124 53 10 / 0.24);
 
   --animate-surgir: surgir 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
   @keyframes surgir {
@@ -78,10 +97,13 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     @apply bg-creme font-sans text-texto antialiased;
-    font-feature-settings: "tnum" 0;
     min-height: 100dvh;
   }
-  h1, h2, h3 { @apply font-display text-choco-800; letter-spacing: -0.01em; font-variant-numeric: lining-nums; }
+  h1, h2, h3, .font-display {
+    font-variation-settings: "SOFT" 100, "WONK" 0, "opsz" 72;
+    font-variant-numeric: lining-nums;
+  }
+  h1, h2, h3 { @apply font-display text-cacau-600; letter-spacing: -0.01em; }
   ::selection { background: var(--color-rosa-200); color: var(--color-choco-900); }
   :focus-visible { outline: 2px solid var(--color-cacau-500); outline-offset: 2px; border-radius: 6px; }
   input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.6; cursor: pointer; }
@@ -91,12 +113,17 @@
   .numeros { font-variant-numeric: lining-nums tabular-nums; }
   .fundo-confeitaria {
     background:
-      radial-gradient(1200px 600px at 100% -10%, rgb(233 184 197 / 0.28), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgb(198 163 106 / 0.18), transparent 60%),
+      radial-gradient(1100px 560px at 100% -10%, rgb(244 165 142 / 0.20), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgb(226 171 117 / 0.18), transparent 60%),
       var(--color-creme);
   }
+  /* Filete dourado com coração, como na logo */
+  .filete {
+    background: linear-gradient(90deg, transparent, var(--color-dourado-500) 18%, var(--color-dourado-500) 82%, transparent);
+    height: 1px;
+  }
   .esqueleto {
-    background: linear-gradient(90deg, var(--color-creme-escuro) 25%, #fbf3ea 50%, var(--color-creme-escuro) 75%);
+    background: linear-gradient(90deg, var(--color-creme-escuro) 25%, #fdf0e1 50%, var(--color-creme-escuro) 75%);
     background-size: 200% 100%;
     animation: var(--animate-brilho);
   }
