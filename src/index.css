@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   Design system · Irmãos na Massa
+   Derivado da identidade visual (logo e materiais da confeitaria):
+   creme de fundo, cacau/chocolate na tipografia, rosa e dourado nos detalhes.
+   ===================================================================== */
+@theme {
+  --font-sans: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-script: "Parisienne", cursive;
+
+  --color-creme: #FFF8EF;
+  --color-creme-escuro: #F7EADB;
+  --color-borda: #EFE1D4;
+  --color-borda-forte: #E2CDBB;
+
+  --color-rosa-50: #FDF5F7;
+  --color-rosa-100: #F8E9ED;
+  --color-rosa-200: #F2D3DB;
+  --color-rosa-300: #E9B8C5;
+  --color-rosa-500: #D9667F;
+  --color-rosa-700: #A83F57;
+
+  --color-cacau-50: #FBF1EC;
+  --color-cacau-100: #F4DCD0;
+  --color-cacau-500: #A5502F;
+  --color-cacau-600: #8A3B24;
+  --color-cacau-700: #6F2E1C;
+  --color-cacau-800: #552314;
+
+  --color-choco-500: #8A6A64;
+  --color-choco-700: #573D39;
+  --color-choco-800: #3E2723;
+  --color-choco-900: #2A1916;
+
+  --color-dourado-100: #F6EEDF;
+  --color-dourado-300: #E3CB9F;
+  --color-dourado-500: #C6A36A;
+  --color-dourado-600: #B8862A;
+  --color-dourado-700: #8C6620;
+
+  --color-texto: #3E2723;
+  --color-texto-suave: #6B5853;
+  --color-cinza: #777777;
+
+  --color-sucesso: #3F7A4A;
+  --color-sucesso-fundo: #EAF3EA;
+  --color-alerta: #9A6512;
+  --color-alerta-fundo: #FBF0DC;
+  --color-erro: #B03A3A;
+  --color-erro-fundo: #FBE9E7;
+  --color-info: #8A3B24;
+  --color-info-fundo: #FBF1EC;
+
+  /* Séries de gráficos (validadas para daltonismo e contraste) */
+  --color-serie-1: #8A3B24;
+  --color-serie-2: #D9667F;
+  --color-serie-3: #B8862A;
+
+  --radius-card: 1.25rem;
+  --shadow-suave: 0 1px 2px rgb(87 61 57 / 0.05), 0 4px 16px -4px rgb(87 61 57 / 0.08);
+  --shadow-elevada: 0 2px 4px rgb(87 61 57 / 0.06), 0 16px 40px -12px rgb(87 61 57 / 0.22);
+
+  --animate-surgir: surgir 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes surgir {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  --animate-brilho: brilho 1.6s ease-in-out infinite;
+  @keyframes brilho {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-creme font-sans text-texto antialiased;
+    font-feature-settings: "tnum" 0;
+    min-height: 100dvh;
+  }
+  h1, h2, h3 { @apply font-display text-choco-800; letter-spacing: -0.01em; font-variant-numeric: lining-nums; }
+  ::selection { background: var(--color-rosa-200); color: var(--color-choco-900); }
+  :focus-visible { outline: 2px solid var(--color-cacau-500); outline-offset: 2px; border-radius: 6px; }
+  input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.6; cursor: pointer; }
+}
+
+@layer utilities {
+  .numeros { font-variant-numeric: lining-nums tabular-nums; }
+  .fundo-confeitaria {
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgb(233 184 197 / 0.28), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgb(198 163 106 / 0.18), transparent 60%),
+      var(--color-creme);
+  }
+  .esqueleto {
+    background: linear-gradient(90deg, var(--color-creme-escuro) 25%, #fbf3ea 50%, var(--color-creme-escuro) 75%);
+    background-size: 200% 100%;
+    animation: var(--animate-brilho);
+  }
+  .rolagem-fina { scrollbar-width: thin; scrollbar-color: var(--color-borda-forte) transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
