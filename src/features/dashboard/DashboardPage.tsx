@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa } from '@/contexts/AuthContext'
-import { Card, CardTitulo, Esqueleto, EstadoErro, EstadoVazio, Input, Badge, Dica } from '@/components/ui'
+import { Card, CardTitulo, Esqueleto, EstadoErro, EstadoVazio, Input, Dica } from '@/components/ui'
 import { BoloDecorativo } from '@/components/three/BoloDecorativo'
 import { cn, dataLocal, formatarMoeda, formatarNumero, mensagemErro, primeiroNome, saudacao, lerPreferencia, salvarPreferencia, isoLocal } from '@/lib/utils'
 import { calcularPeriodo, rotulosPeriodo, type PresetPeriodo, type Periodo } from './periodos'
@@ -341,7 +341,7 @@ export function DashboardPage() {
 
           {!temVendas && !temMovimento && (
             <p className="flex items-center justify-center gap-2 text-center text-[12.5px] text-texto-suave">
-              <Badge tom="dourado">Fase 1</Badge> Os indicadores ganham vida conforme os módulos de cadastros, pedidos e financeiro forem entrando em uso.
+              Os indicadores aparecem conforme você registra pedidos, pagamentos e despesas.
             </p>
           )}
         </>

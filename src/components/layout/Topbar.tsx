@@ -5,12 +5,12 @@ import * as Dialog from '@radix-ui/react-dialog'
 import * as Popover from '@radix-ui/react-popover'
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import {
-  Menu as MenuIcon, Search, Bell, Plus, LogOut, Settings, Building2, Check, ClipboardList, UserRound, Cake, Package,
+  Menu as MenuIcon, Search, Bell, LogOut, Settings, Building2, Check, ClipboardList, UserRound, Cake, Package,
   AlertTriangle, CalendarClock, Gift, Inbox, Loader2, CircleAlert,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa, nomesPapeis } from '@/contexts/AuthContext'
-import { Badge, Dica } from '@/components/ui'
+import { Badge } from '@/components/ui'
 import { cn, iniciais, mensagemErro } from '@/lib/utils'
 import { toast } from 'sonner'
 import { SeloMarca } from '@/components/marca'
@@ -49,7 +49,7 @@ function BuscaGlobal({ aberta, onAbertaChange }: { aberta: boolean; onAbertaChan
   const abrir = (tipo: string, id?: string) => {
     onAbertaChange(false)
     const rota = rotasBusca[tipo] ?? '/'
-    navigate(tipo === 'cliente' && id ? `${rota}?id=${id}` : rota)
+    navigate(tipo !== 'insumo' && id ? `${rota}?id=${id}` : rota)
   }
 
   return (
@@ -282,22 +282,6 @@ export function Topbar({ onAbrirMenu }: { onAbrirMenu: () => void }) {
         </button>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <div className="hidden items-center gap-2 md:flex">
-            <Dica conteudo="O cadastro de pedidos chega na Fase 4">
-              <span tabIndex={0}>
-                <button type="button" disabled className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-cacau-600 px-3.5 text-[13px] font-semibold text-white opacity-50">
-                  <Plus className="size-4" /> Novo pedido
-                </button>
-              </span>
-            </Dica>
-            <Dica conteudo="O cadastro de clientes chega na Fase 2">
-              <span tabIndex={0}>
-                <button type="button" disabled className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-borda-forte bg-white px-3.5 text-[13px] font-semibold text-choco-800 opacity-50">
-                  <UserRound className="size-4" /> Novo cliente
-                </button>
-              </span>
-            </Dica>
-          </div>
           <Notificacoes />
           <MenuUsuario />
         </div>

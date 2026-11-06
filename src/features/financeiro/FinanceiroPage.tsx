@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { addMonths, eachDayOfInterval, endOfMonth, format, startOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowDownCircle, ArrowUpCircle, ChevronLeft, ChevronRight, LayoutDashboard, Plus, Receipt, Repeat, RotateCcw, Settings2, Wallet } from 'lucide-react'
+import { ArrowDownCircle, ArrowUpCircle, ChevronLeft, ChevronRight, LayoutDashboard, Plus, Receipt, RotateCcw, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { exigir, supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa } from '@/contexts/AuthContext'
@@ -12,30 +12,25 @@ import { Badge, Button, Campo, Card, Carregando, EstadoErro, EstadoVazio, Input,
 import { Abas, CabecalhoPagina, CabecalhoTabela, DialogoMotivo, Kpi, Modal, Pilulas } from '@/components/ui/estrutura'
 import { cn, dataLocal, formatarMoeda, hojeIso, isoLocal, lerNumero, mensagemErro } from '@/lib/utils'
 import { Contas } from './Contas'
-import { CadastrosFinanceiros, Recorrentes } from './Cadastros'
 
-type Aba = 'visao' | 'receber' | 'pagar' | 'caixa' | 'fixas' | 'cadastros'
+type Aba = 'visao' | 'receber' | 'pagar' | 'caixa'
 
 export function FinanceiroPage() {
   const [params, setParams] = useSearchParams()
   const aba = (params.get('aba') as Aba) || 'visao'
   return (
     <div className="space-y-5">
-      <CabecalhoPagina titulo="Financeiro" descricao="Contas a pagar e a receber, fluxo de caixa e despesas fixas. Faturamento (pedidos) é separado do valor recebido (caixa)." />
+      <CabecalhoPagina titulo="Financeiro" descricao="Contas a pagar e a receber, fluxo de caixa e lançamentos. Faturamento (pedidos) é separado do valor recebido (caixa)." />
       <Abas ativa={aba} onChange={(a) => setParams(a === 'visao' ? {} : { aba: a }, { replace: true })} abas={[
         { id: 'visao', rotulo: 'Fluxo de caixa', icone: <LayoutDashboard className="size-4" /> },
         { id: 'receber', rotulo: 'A receber', icone: <ArrowDownCircle className="size-4" /> },
         { id: 'pagar', rotulo: 'A pagar', icone: <ArrowUpCircle className="size-4" /> },
         { id: 'caixa', rotulo: 'Lançamentos', icone: <Receipt className="size-4" /> },
-        { id: 'fixas', rotulo: 'Despesas fixas', icone: <Repeat className="size-4" /> },
-        { id: 'cadastros', rotulo: 'Categorias e formas', icone: <Settings2 className="size-4" /> },
       ]} />
       {aba === 'visao' && <Visao />}
       {aba === 'receber' && <Contas key="r" tipo="receber" />}
       {aba === 'pagar' && <Contas key="p" tipo="pagar" />}
       {aba === 'caixa' && <Caixa />}
-      {aba === 'fixas' && <Recorrentes />}
-      {aba === 'cadastros' && <CadastrosFinanceiros />}
     </div>
   )
 }

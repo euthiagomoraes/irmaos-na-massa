@@ -243,7 +243,28 @@ function AbaPerfil() {
 /* ------------------------------------------------------------ Equipe */
 function AbaEquipe() {
   const empresa = useEmpresa()
-  const { usuario } = useAuth()
+  const { usuario, ehAdmin } = useAuth()
+  const qc = useQueryClient()
+  const [email, setEmail] = useState('')
+  const [papelNovo, setPapelNovo] = useState<Papel>('atendente')
+  const [adicionando, setAdicionando] = useState(false)
+  const atualizarEquipe = () => qc.invalidateQueries({ queryKey: ['equipe', empresa.id] })
+  const adicionar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return void toast.error('Informe um e-mail válido.')
+    setAdicionando(true)
+    const { error: er } = await supabase.rpc('adicionar_membro', { p_empresa: empresa.id, p_email: email.trim(), p_papel: papelNovo })
+    setAdicionando(false)
+    if (er) return void toast.error(mensagemErro(er))
+    setEmail('')
+    await atualizarEquipe()
+    toast.success('Membro adicionado. No próximo acesso, a pessoa já entra nesta confeitaria.')
+  }
+  const alterar = async (membro: string, campos: { p_papel?: Papel; p_ativo?: boolean }) => {
+    const { error: er } = await supabase.rpc('alterar_membro', { p_membro: membro, ...campos })
+    if (er) return void toast.error(mensagemErro(er))
+    await atualizarEquipe()
+  }
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['equipe', empresa.id],
     queryFn: async () => {
@@ -266,20 +287,49 @@ function AbaEquipe() {
   return (
     <div className="space-y-4">
       <ul className="divide-y divide-borda rounded-2xl border border-borda">
-        {data?.map((m) => (
-          <li key={m.id} className="flex items-center gap-3 p-4">
-            <span className="grid size-10 place-items-center rounded-full bg-rosa-100 text-[13px] font-bold text-cacau-700">{iniciais(m.nome)}</span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-choco-800">{m.nome ?? 'Sem nome'} {m.user_id === usuario?.id && <span className="font-normal text-texto-suave">(você)</span>}</p>
-              <p className="text-[12.5px] text-texto-suave">{descricoes[m.papel]}</p>
-            </div>
-            <Badge tom={m.papel === 'proprietario' ? 'dourado' : 'neutro'}>{nomesPapeis[m.papel]}</Badge>
-          </li>
-        ))}
+        {data?.map((m) => {
+          const editavel = ehAdmin && m.papel !== 'proprietario' && m.user_id !== usuario?.id
+          return (
+            <li key={m.id} className={cn('flex flex-wrap items-center gap-3 p-4', !m.ativo && 'opacity-60')}>
+              <span className="grid size-10 place-items-center rounded-full bg-rosa-100 text-[13px] font-bold text-cacau-700">{iniciais(m.nome)}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-choco-800">
+                  {m.nome ?? 'Sem nome'} {m.user_id === usuario?.id && <span className="font-normal text-texto-suave">(você)</span>}
+                  {!m.ativo && <Badge className="ml-2 py-0 text-[11px]">Sem acesso</Badge>}
+                </p>
+                <p className="text-[12.5px] text-texto-suave">{descricoes[m.papel]}</p>
+              </div>
+              {editavel ? (
+                <>
+                  <Select aria-label={`Perfil de ${m.nome ?? 'membro'}`} value={m.papel} className="h-9 w-44 text-[13px]"
+                    onChange={(e) => void alterar(m.id, { p_papel: e.target.value as Papel })}>
+                    {(Object.keys(descricoes) as Papel[]).filter((p) => p !== 'proprietario').map((p) => <option key={p} value={p}>{nomesPapeis[p]}</option>)}
+                  </Select>
+                  <Button variante="fantasma" tamanho="sm" onClick={() => void alterar(m.id, { p_ativo: !m.ativo })}>{m.ativo ? 'Remover acesso' : 'Devolver acesso'}</Button>
+                </>
+              ) : <Badge tom={m.papel === 'proprietario' ? 'dourado' : 'neutro'}>{nomesPapeis[m.papel]}</Badge>}
+            </li>
+          )
+        })}
       </ul>
+      {ehAdmin && (
+        <form onSubmit={adicionar} className="space-y-3 rounded-2xl border border-dashed border-borda-forte p-4">
+          <p className="text-sm font-semibold text-choco-800">Adicionar pessoa à equipe</p>
+          <div className="grid gap-3 sm:grid-cols-[1fr_12rem_auto] sm:items-end">
+            <Campo rotulo="E-mail da conta" htmlFor="eq-email"><Input id="eq-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@email.com" /></Campo>
+            <Campo rotulo="Perfil" htmlFor="eq-papel">
+              <Select id="eq-papel" value={papelNovo} onChange={(e) => setPapelNovo(e.target.value as Papel)}>
+                {(Object.keys(descricoes) as Papel[]).filter((p) => p !== 'proprietario').map((p) => <option key={p} value={p}>{nomesPapeis[p]}</option>)}
+              </Select>
+            </Campo>
+            <Button type="submit" carregando={adicionando} disabled={!email.trim()}>Adicionar</Button>
+          </div>
+          <p className="text-[12.5px] text-texto-suave">A pessoa precisa criar a conta no sistema com esse e-mail antes. Depois de adicionada, ela entra direto nesta confeitaria.</p>
+        </form>
+      )}
       <p className="flex items-start gap-2 rounded-xl bg-creme px-4 py-3 text-[12.5px] text-texto-suave">
         <ShieldCheck className="mt-0.5 size-4 shrink-0 text-cacau-600" />
-        Cada perfil de acesso é aplicado diretamente no banco de dados (Row Level Security). O convite de novos membros chega junto com a Fase 2.
+        Cada perfil de acesso é aplicado diretamente no banco de dados (Row Level Security): mesmo fora do sistema, ninguém vê ou altera o que o seu perfil não permite.
       </p>
     </div>
   )

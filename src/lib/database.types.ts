@@ -3679,6 +3679,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      // ---- 0011 · equipe ----
+      adicionar_membro: { Args: { p_empresa: string; p_email: string; p_papel: Database['public']['Enums']['papel_usuario'] }; Returns: string }
+      alterar_membro: { Args: { p_membro: string; p_papel?: Database['public']['Enums']['papel_usuario']; p_ativo?: boolean }; Returns: undefined }
       // ---- 0010 · fluxos operacionais ----
       confirmar_compra: {
         Args: { p_compra: string; p_gerar_conta?: boolean; p_vencimento?: string; p_pago?: boolean; p_forma_pagamento?: string }
