@@ -3851,6 +3851,8 @@ export type Database = {
         Returns: string
       }
       notificacoes: { Args: { p_empresa: string }; Returns: Json }
+      atividade_equipe: { Args: { p_empresa: string }; Returns: Json }
+      marcar_atividade_vista: { Args: never; Returns: undefined }
       recalcular_custo_ficha: {
         Args: { p_ficha: string; p_motivo?: string }
         Returns: {

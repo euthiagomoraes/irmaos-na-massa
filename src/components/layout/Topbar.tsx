@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { formatDistanceToNowStrict } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Popover from '@radix-ui/react-popover'
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import {
   Menu as MenuIcon, Search, Bell, LogOut, Settings, Building2, Check, ClipboardList, UserRound, Cake, Package,
-  AlertTriangle, CalendarClock, Gift, Inbox, Loader2, CircleAlert,
+  AlertTriangle, CalendarClock, Gift, Inbox, Loader2, CircleAlert, Users, Wallet,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa, nomesPapeis } from '@/contexts/AuthContext'
-import { Badge } from '@/components/ui'
 import { cn, iniciais, mensagemErro } from '@/lib/utils'
 import { toast } from 'sonner'
 import { SeloMarca } from '@/components/marca'
@@ -120,13 +121,27 @@ function BuscaGlobal({ aberta, onAbertaChange }: { aberta: boolean; onAbertaChan
 
 /* ------------------------------------------------------------ Notificações */
 interface Notificacao { tipo: string; nivel: 'info' | 'alerta' | 'critico'; id: string; titulo: string; descricao: string; rota: string }
+interface Atividade { id: number; quando: string; nova: boolean; autor: string; tabela: string; evento: string; texto: string; detalhe: string | null; rota: string }
+
 const iconesNotif: Record<string, typeof Bell> = {
   estoque_baixo: Package, validade: AlertTriangle, entrega: CalendarClock, conta_vencida: CircleAlert, solicitacao: Inbox, aniversario: Gift,
 }
+const iconesAtividade: Record<string, typeof Bell> = {
+  pedidos: ClipboardList, solicitacoes_orcamento: Inbox, clientes: UserRound, produtos: Cake, insumos: Package,
+  contas_pagar: Wallet, contas_receber: Wallet, compras: Package, despesas_recorrentes: Wallet, pessoas_equipe: Users,
+}
+const tempoRelativo = (iso: string) => formatDistanceToNowStrict(new Date(iso), { locale: ptBR, addSuffix: true })
 
 function Notificacoes() {
   const empresa = useEmpresa()
-  const { data, isLoading, error } = useQuery({
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  const [aberto, setAberto] = useState(false)
+  const [aba, setAba] = useState<'equipe' | 'alertas'>('equipe')
+  // Ids que estavam "novos" quando o painel abriu (continuam destacados enquanto ele estiver aberto)
+  const [destacadas, setDestacadas] = useState<Set<number>>(new Set())
+
+  const alertasQ = useQuery({
     queryKey: ['notificacoes', empresa.id],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('notificacoes', { p_empresa: empresa.id })
@@ -135,40 +150,130 @@ function Notificacoes() {
     },
     refetchInterval: 60_000,
   })
-  const lista = data ?? []
-  const urgentes = lista.filter((n) => n.nivel !== 'info').length
+  const atividadeQ = useQuery({
+    queryKey: ['atividade', empresa.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('atividade_equipe', { p_empresa: empresa.id })
+      if (error) throw error
+      return (data as unknown as Atividade[]) ?? []
+    },
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  })
+
+  const alertas = alertasQ.data ?? []
+  const atividades = atividadeQ.data ?? []
+  const novas = atividades.filter((a) => a.nova).length
+  const urgentes = alertas.filter((n) => n.nivel !== 'info').length
+  const total = alertas.length + novas
+
+  // Aviso na tela quando chega atividade nova de outra pessoa
+  const ultimoId = useRef<number | null>(null)
+  useEffect(() => {
+    if (!atividadeQ.data) return
+    const maior = atividadeQ.data.reduce((m, a) => Math.max(m, a.id), 0)
+    const anterior = ultimoId.current
+    if (anterior !== null) {
+      atividadeQ.data.filter((a) => a.id > anterior && a.nova).slice(0, 3).reverse().forEach((a) =>
+        toast(`${a.autor} ${a.texto}`, {
+          description: a.detalhe ?? undefined,
+          action: { label: 'Ver', onClick: () => navigate(a.rota) },
+          duration: 8000,
+        }))
+    }
+    ultimoId.current = Math.max(anterior ?? 0, maior)
+  }, [atividadeQ.data, navigate])
+
+  const marcarVistas = async () => {
+    if (!novas) return
+    await supabase.rpc('marcar_atividade_vista')
+    await qc.invalidateQueries({ queryKey: ['atividade', empresa.id] })
+  }
+
+  const abrirPainel = (v: boolean) => {
+    setAberto(v)
+    if (v) {
+      const abaInicial = novas > 0 || alertas.length === 0 ? 'equipe' : 'alertas'
+      setAba(abaInicial)
+      setDestacadas(new Set(atividades.filter((a) => a.nova).map((a) => a.id)))
+      if (abaInicial === 'equipe') void marcarVistas()
+    }
+  }
 
   return (
-    <Popover.Root>
+    <Popover.Root open={aberto} onOpenChange={abrirPainel}>
       <Popover.Trigger asChild>
-        <button type="button" aria-label={`Notificações${lista.length ? ` (${lista.length})` : ''}`} className="relative grid size-10 place-items-center rounded-xl text-choco-700 hover:bg-white">
+        <button type="button" aria-label={`Notificações${total ? ` (${total})` : ''}`} className="relative grid size-10 place-items-center rounded-xl text-choco-700 hover:bg-white">
           <Bell className="size-[19px]" />
-          {lista.length > 0 && (
+          {total > 0 && (
             <span className={cn('absolute top-1.5 right-1.5 grid min-w-[18px] place-items-center rounded-full px-1 text-[10px] leading-[18px] font-bold text-white ring-2 ring-creme', urgentes ? 'bg-erro' : 'bg-cacau-600')}>
-              {lista.length > 9 ? '9+' : lista.length}
+              {total > 9 ? '9+' : total}
             </span>
           )}
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content align="end" sideOffset={8} className="z-50 w-[min(380px,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-borda bg-white shadow-elevada animate-surgir">
-          <div className="flex items-center justify-between border-b border-borda px-4 py-3">
-            <p className="font-display font-semibold">Notificações</p>
-            {lista.length > 0 && <Badge tom={urgentes ? 'erro' : 'info'}>{lista.length}</Badge>}
+        <Popover.Content align="end" sideOffset={8} collisionPadding={12} className="z-50 w-[min(400px,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-borda bg-white shadow-elevada animate-surgir">
+          <div className="flex items-center justify-between gap-2 border-b border-borda px-4 pt-3">
+            <p className="pb-3 font-display font-semibold">Notificações</p>
+            <div role="tablist" className="flex gap-1">
+              {([['equipe', 'Equipe', novas], ['alertas', 'Alertas', alertas.length]] as const).map(([id, rotulo, n]) => (
+                <button key={id} type="button" role="tab" aria-selected={aba === id}
+                  onClick={() => { setAba(id); if (id === 'equipe') void marcarVistas() }}
+                  className={cn('-mb-px inline-flex items-center gap-1.5 border-b-2 px-2.5 pb-2.5 text-[13px] font-semibold',
+                    aba === id ? 'border-cacau-600 text-cacau-700' : 'border-transparent text-texto-suave')}>
+                  {rotulo}
+                  {n > 0 && <span className={cn('rounded-full px-1.5 text-[10.5px] text-white', id === 'alertas' && urgentes ? 'bg-erro' : 'bg-cacau-600')}>{n}</span>}
+                </button>
+              ))}
+            </div>
           </div>
+
           <div className="rolagem-fina max-h-[60vh] overflow-y-auto p-2">
-            {isLoading ? (
+            {aba === 'equipe' ? (
+              atividadeQ.isLoading ? (
+                <p className="flex items-center justify-center gap-2 py-8 text-[13px] text-texto-suave"><Loader2 className="size-4 animate-spin" />Carregando…</p>
+              ) : atividadeQ.error ? (
+                <p className="py-8 text-center text-[13px] text-erro">{mensagemErro(atividadeQ.error)}</p>
+              ) : atividades.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Users className="mx-auto mb-2 size-6 text-cacau-500" />
+                  <p className="text-sm font-semibold text-choco-800">Nenhuma atividade da equipe</p>
+                  <p className="text-[12.5px] text-texto-suave">Pedidos, pagamentos e cadastros feitos pelas outras pessoas aparecem aqui.</p>
+                </div>
+              ) : (
+                atividades.map((a) => {
+                  const Icone = iconesAtividade[a.tabela] ?? Bell
+                  const nova = destacadas.has(a.id) || a.nova
+                  return (
+                    <Popover.Close asChild key={a.id}>
+                      <Link to={a.rota} className={cn('relative flex gap-3 rounded-xl px-3 py-2.5 hover:bg-creme', nova && 'bg-rosa-50')}>
+                        <span className="relative mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-rosa-100 text-[11px] font-bold text-cacau-700">
+                          {a.autor === 'Site' || a.autor === 'Sistema' ? <Icone className="size-4" /> : iniciais(a.autor)}
+                          <span className="absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-full bg-white text-cacau-600 ring-1 ring-borda"><Icone className="size-2.5" /></span>
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[13px] leading-snug text-choco-800"><strong>{a.autor}</strong> {a.texto}</span>
+                          <span className="block text-[12px] text-texto-suave">{tempoRelativo(a.quando)}{a.detalhe ? ` · ${a.detalhe}` : ''}</span>
+                        </span>
+                        {nova && <span className="mt-1.5 size-2 shrink-0 rounded-full bg-cacau-600" aria-label="Nova" />}
+                      </Link>
+                    </Popover.Close>
+                  )
+                })
+              )
+            ) : alertasQ.isLoading ? (
               <p className="flex items-center justify-center gap-2 py-8 text-[13px] text-texto-suave"><Loader2 className="size-4 animate-spin" />Carregando…</p>
-            ) : error ? (
-              <p className="py-8 text-center text-[13px] text-erro">{mensagemErro(error)}</p>
-            ) : lista.length === 0 ? (
+            ) : alertasQ.error ? (
+              <p className="py-8 text-center text-[13px] text-erro">{mensagemErro(alertasQ.error)}</p>
+            ) : alertas.length === 0 ? (
               <div className="py-10 text-center">
                 <Check className="mx-auto mb-2 size-6 text-sucesso" />
                 <p className="text-sm font-semibold text-choco-800">Tudo em dia!</p>
                 <p className="text-[12.5px] text-texto-suave">Nenhum alerta de estoque, validade, entregas ou contas.</p>
               </div>
             ) : (
-              lista.map((n) => {
+              alertas.map((n) => {
                 const Icone = iconesNotif[n.tipo] ?? Bell
                 return (
                   <Popover.Close asChild key={`${n.tipo}-${n.id}`}>
