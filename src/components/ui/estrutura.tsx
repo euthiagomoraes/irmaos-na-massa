@@ -20,7 +20,7 @@ export function Modal({
   const conteudo = (
     <>
       <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
-      {rodape && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-borda bg-creme/40 px-6 py-3.5">{rodape}</div>}
+      {rodape && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-borda bg-creme/40 px-6 pt-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] sm:pb-3.5">{rodape}</div>}
     </>
   )
   return (
@@ -28,7 +28,12 @@ export function Modal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-choco-900/25 backdrop-blur-[2px]" />
         <Dialog.Content
-          className={cn('fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-borda bg-white shadow-elevada animate-surgir', largura)}>
+          className={cn(
+            // Celular: folha que sobe de baixo (como app) · telas maiores: janela centralizada
+            'fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-b-0 border-borda bg-white shadow-elevada animate-folha',
+            'sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:border-b sm:animate-surgir',
+            largura)}>
+          <span className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-borda-forte sm:hidden" aria-hidden />
           <div className="flex items-start justify-between gap-3 border-b border-borda px-6 py-4">
             <div className="min-w-0">
               <Dialog.Title className="font-display text-xl font-semibold">{titulo}</Dialog.Title>

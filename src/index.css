@@ -86,6 +86,11 @@
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  --animate-folha: folha 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes folha {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
   --animate-brilho: brilho 1.6s ease-in-out infinite;
   @keyframes brilho {
     0% { background-position: -200% 0; }
@@ -107,6 +112,16 @@
   ::selection { background: var(--color-rosa-200); color: var(--color-choco-900); }
   :focus-visible { outline: 2px solid var(--color-cacau-500); outline-offset: 2px; border-radius: 6px; }
   input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.6; cursor: pointer; }
+
+  /* ---------- Uso como app no celular ---------- */
+  html { -webkit-tap-highlight-color: transparent; }
+  body { overscroll-behavior-y: none; }
+  /* Toque imediato (sem atraso de duplo toque) */
+  a, button, label, input, select, textarea, [role="button"], [role="tab"], [role="radio"] { touch-action: manipulation; }
+  /* Sem zoom automático ao tocar em campos: o iOS amplia qualquer campo com fonte < 16px */
+  @media (pointer: coarse), (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+  }
 }
 
 @layer utilities {
@@ -128,7 +143,43 @@
     animation: var(--animate-brilho);
   }
   .rolagem-fina { scrollbar-width: thin; scrollbar-color: var(--color-borda-forte) transparent; }
+  .sem-barra { scrollbar-width: none; }
+  .sem-barra::-webkit-scrollbar { display: none; }
+  /* Áreas seguras (notch e barra de gestos) */
+  .pb-seguro { padding-bottom: env(safe-area-inset-bottom); }
+  .pt-seguro { padding-top: env(safe-area-inset-top); }
 }
+
+/* ---------- Fundo animado do login (bolos + negócios) ---------- */
+@keyframes flutuar {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--giro, 0deg)); }
+  50% { transform: translate3d(var(--dx, 6px), var(--dy, -18px), 0) rotate(calc(var(--giro, 0deg) + 6deg)); }
+}
+@keyframes subir {
+  0% { transform: translate3d(0, 0, 0) scale(0.9); opacity: 0; }
+  12% { opacity: var(--opacidade, 0.5); }
+  88% { opacity: var(--opacidade, 0.5); }
+  100% { transform: translate3d(var(--dx, 0px), -105vh, 0) scale(1.05) rotate(var(--giro, 20deg)); opacity: 0; }
+}
+@keyframes crescer-barra {
+  0%, 8% { transform: scaleY(0.08); }
+  45%, 80% { transform: scaleY(1); }
+  100% { transform: scaleY(0.08); }
+}
+@keyframes tracar {
+  0%, 10% { stroke-dashoffset: 1; }
+  50%, 85% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -1; }
+}
+@keyframes cintilar {
+  0%, 100% { opacity: 0.15; transform: scale(0.6); }
+  50% { opacity: 0.9; transform: scale(1); }
+}
+.anima-flutuar { animation: flutuar var(--duracao, 9s) ease-in-out var(--atraso, 0s) infinite; will-change: transform; }
+.anima-subir { animation: subir var(--duracao, 22s) linear var(--atraso, 0s) infinite; will-change: transform, opacity; }
+.anima-barra { transform-box: fill-box; transform-origin: bottom; animation: crescer-barra 7s cubic-bezier(0.22, 1, 0.36, 1) var(--atraso, 0s) infinite; }
+.anima-tracar { stroke-dasharray: 1; animation: tracar 7s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+.anima-cintilar { transform-box: fill-box; transform-origin: center; animation: cintilar var(--duracao, 3s) ease-in-out var(--atraso, 0s) infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }

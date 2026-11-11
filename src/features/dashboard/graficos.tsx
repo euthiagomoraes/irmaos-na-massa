@@ -56,10 +56,10 @@ export function GraficoLinhas({ dados, series, agrupamento, altura = 260 }: { da
       <LineChart data={dados} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
         <CartesianGrid stroke={GRADE} vertical={false} />
         <XAxis dataKey="data" tickFormatter={rotuloData(agrupamento)} tick={EIXO} axisLine={false} tickLine={false} minTickGap={24} />
-        <YAxis tickFormatter={formatarMoedaCompacta} tick={EIXO} axisLine={false} tickLine={false} width={64} />
+        <YAxis tickFormatter={formatarMoedaCompacta} tick={EIXO} axisLine={false} tickLine={false} width={52} />
         <Tooltip cursor={{ stroke: '#D18A45', strokeDasharray: '4 4' }} content={<DicaGrafico rotulo={rotuloDataLongo(agrupamento)} />} />
         {series.map((s) => (
-          <Line key={s.chave} type="monotone" dataKey={s.chave} name={s.nome} stroke={s.cor} strokeWidth={2} dot={dados.length <= 12 ? { r: 3, strokeWidth: 0, fill: s.cor } : false} activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }} />
+          <Line key={s.chave} type="monotone" dataKey={s.chave} name={s.nome} stroke={s.cor} strokeWidth={2} dot={dados.length <= 12 ? { r: 3, strokeWidth: 0, fill: s.cor } : false} activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }} animationDuration={900} animationEasing="ease-out" />
         ))}
       </LineChart>
     </ResponsiveContainer>
@@ -75,11 +75,11 @@ export function GraficoBarras({ dados, series, chaveX, rotuloX, rotuloDica, altu
       <BarChart data={dados} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={2} barCategoryGap="28%">
         <CartesianGrid stroke={GRADE} vertical={false} />
         <XAxis dataKey={chaveX} tickFormatter={rotuloX} tick={EIXO} axisLine={false} tickLine={false} minTickGap={12} />
-        <YAxis tickFormatter={formatarMoedaCompacta} tick={EIXO} axisLine={false} tickLine={false} width={64} />
+        <YAxis tickFormatter={formatarMoedaCompacta} tick={EIXO} axisLine={false} tickLine={false} width={52} />
         <Tooltip cursor={{ fill: 'rgb(244 165 142 / 0.16)' }} content={<DicaGrafico rotulo={rotuloDica} />} />
         {linhaZero && <ReferenceLine y={0} stroke="#C9A98A" />}
         {series.map((s) => (
-          <Bar key={s.chave} dataKey={s.chave} name={s.nome} fill={s.cor} radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <Bar key={s.chave} dataKey={s.chave} name={s.nome} fill={s.cor} radius={[4, 4, 0, 0]} maxBarSize={28} animationDuration={800} animationEasing="ease-out" />
         ))}
       </BarChart>
     </ResponsiveContainer>
@@ -93,14 +93,15 @@ export const rotulosMes = {
 
 /** Barras horizontais com rótulo de valor direto (ranking). */
 export function GraficoRanking({ dados, chave, nome, cor = SERIES.s1, moeda = true }: { dados: { nome: string; [k: string]: unknown }[]; chave: string; nome: string; cor?: string; moeda?: boolean }) {
-  const altura = Math.max(dados.length * 40 + 16, 120)
+  const altura = Math.max(dados.length * 34 + 12, 110)
   return (
     <ResponsiveContainer width="100%" height={altura}>
-      <BarChart data={dados} layout="vertical" margin={{ top: 4, right: 72, bottom: 4, left: 0 }} barCategoryGap="30%">
+      <BarChart data={dados} layout="vertical" margin={{ top: 4, right: 64, bottom: 4, left: 0 }} barCategoryGap="30%">
         <XAxis type="number" hide />
-        <YAxis type="category" dataKey="nome" tick={{ ...EIXO, fill: '#4A2410', fontSize: 12 }} axisLine={false} tickLine={false} width={160} interval={0} />
+        <YAxis type="category" dataKey="nome" tick={{ ...EIXO, fill: '#4A2410', fontSize: 12 }} axisLine={false} tickLine={false} width={118} interval={0}
+          tickFormatter={(v: string) => (v.length > 17 ? v.slice(0, 16) + '…' : v)} />
         <Tooltip cursor={{ fill: 'rgb(244 165 142 / 0.16)' }} content={<DicaGrafico rotulo={(l) => l} moeda={moeda} />} />
-        <Bar dataKey={chave} name={nome} fill={cor} radius={[0, 4, 4, 0]} maxBarSize={22}>
+        <Bar dataKey={chave} name={nome} fill={cor} radius={[0, 4, 4, 0]} maxBarSize={20} animationDuration={800} animationEasing="ease-out">
           <LabelList dataKey={chave} position="right" formatter={(v: unknown) => (moeda ? formatarMoedaCompacta(Number(v)) : formatarNumero(Number(v)))} style={{ fill: '#4A2410', fontSize: 12, fontWeight: 600 }} />
         </Bar>
       </BarChart>

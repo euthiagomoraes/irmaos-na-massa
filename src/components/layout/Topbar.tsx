@@ -264,7 +264,7 @@ export function Topbar({ onAbrirMenu }: { onAbrirMenu: () => void }) {
   }, [])
 
   return (
-    <header className="sticky top-0 z-30 border-b border-borda/60 bg-creme/85 backdrop-blur-md">
+    <header className="pt-seguro sticky top-0 z-30 border-b border-borda/60 bg-creme/85 backdrop-blur-md">
       <div className="flex h-16 items-center gap-2 px-4 sm:gap-3 lg:px-8">
         <button type="button" onClick={onAbrirMenu} className="grid size-10 place-items-center rounded-xl text-choco-700 hover:bg-white lg:hidden" aria-label="Abrir menu">
           <MenuIcon className="size-5" />
