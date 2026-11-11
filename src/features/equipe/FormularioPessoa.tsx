@@ -65,7 +65,6 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
   const [telefone, setTelefone] = useState('')
   const [pix, setPix] = useState('')
   const [email, setEmail] = useState('')
-  const [criarLogin, setCriarLogin] = useState(true)
   const [senha, setSenha] = useState('')
   const [verSenha, setVerSenha] = useState(false)
   const [ativo, setAtivo] = useState(true)
@@ -84,10 +83,7 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
     setFixo(pessoa?.valor_fixo ? String(pessoa.valor_fixo).replace('.', ',') : '')
     setTelefone(pessoa?.telefone ?? '')
     setPix(pessoa?.chave_pix ?? '')
-    // Primeiro cadastro: sugere o seu próprio e-mail (você também é sócio)
-    const primeiro = !pessoa && pessoas.length === 0
-    setEmail(pessoa ? (pessoa.email ?? '') : primeiro ? (usuario?.email ?? '') : '')
-    setCriarLogin(!primeiro)
+    setEmail(pessoa?.email ?? '')
     setSenha('')
     setVerSenha(false)
     setAtivo(pessoa?.ativo ?? true)
@@ -102,9 +98,10 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
   const disponivel = Math.max(0, 100 - jaDistribuido)
   const emailLimpo = email.trim().toLowerCase()
   const emailMudou = emailLimpo !== (pessoa?.email ?? '')
-  // A conta só pode ser criada para quem ainda não tem acesso (ou trocou o e-mail)
-  const podeCriarLogin = !!emailLimpo && ativo && (!temAcesso || emailMudou) && emailLimpo !== usuario?.email?.toLowerCase()
-  const vaiCriarLogin = podeCriarLogin && criarLogin
+  // A senha aparece para quem ainda não tem login (ou trocou o e-mail); é opcional
+  const mostrarSenha = !ehVoce && (!temAcesso || emailMudou)
+  const ehSeuEmail = !!emailLimpo && emailLimpo === usuario?.email?.toLowerCase()
+  const vaiCriarLogin = mostrarSenha && !!emailLimpo && !ehSeuEmail && ativo && senha.length > 0
 
   const salvar = async (e: FormEvent) => {
     e.preventDefault()
@@ -119,7 +116,12 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
     }
     if (usaFixo && (f === null || Number.isNaN(f) || f <= 0)) novos.fixo = 'Informe o valor mensal'
     if (emailLimpo && !EMAIL_VALIDO.test(emailLimpo)) novos.email = 'E-mail inválido'
-    if (vaiCriarLogin && senha.length < 8) novos.senha = 'A senha precisa ter pelo menos 8 caracteres'
+    if (mostrarSenha && senha) {
+      if (!emailLimpo) novos.email = 'Informe o e-mail para criar o login'
+      else if (ehSeuEmail) novos.senha = 'Este e-mail já é o seu login; deixe a senha em branco'
+      else if (!ativo) novos.senha = 'Ative a pessoa para criar o login'
+      else if (senha.length < 8) novos.senha = 'A senha precisa ter pelo menos 8 caracteres'
+    }
     setErros(novos)
     if (Object.keys(novos).length) return
 
@@ -207,44 +209,40 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
             </div>
           </div>
 
-          <Campo rotulo="E-mail de login" htmlFor="pe-email" erro={erros.email}
-            dica={ehVoce ? 'Este é o seu login e não pode ser alterado aqui.' : 'Deixe em branco para não dar acesso.'}>
-            <Input id="pe-email" type="email" autoComplete="off" value={email} disabled={ehVoce}
-              onChange={(e) => setEmail(e.target.value)} aria-invalid={!!erros.email} />
-          </Campo>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo rotulo="E-mail de login" htmlFor="pe-email" erro={erros.email}
+              dica={ehVoce ? 'Este é o seu login.' : 'Em branco: sem acesso ao sistema.'}>
+              <Input id="pe-email" type="email" autoComplete="off" placeholder="nome@email.com" value={email} disabled={ehVoce}
+                onChange={(e) => setEmail(e.target.value)} aria-invalid={!!erros.email} />
+            </Campo>
+
+            {mostrarSenha && (
+              <Campo rotulo="Senha" htmlFor="pe-senha" erro={erros.senha}
+                dica={erros.senha ? undefined : 'Mínimo de 8 caracteres.'}
+                acao={<button type="button" onClick={() => { setSenha(gerarSenha()); setVerSenha(true) }}
+                  className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-cacau-600 hover:underline"><Wand2 className="size-3.5" />Gerar</button>}>
+                <div className="relative">
+                  <Input id="pe-senha" type={verSenha ? 'text' : 'password'} autoComplete="new-password" value={senha}
+                    onChange={(e) => setSenha(e.target.value)} aria-invalid={!!erros.senha} className="pr-10" />
+                  <button type="button" onClick={() => setVerSenha((v) => !v)} aria-label={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                    className="absolute top-1/2 right-2 grid size-7 -translate-y-1/2 place-items-center rounded-lg text-cinza hover:text-choco-700">
+                    {verSenha ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </Campo>
+            )}
+          </div>
+
+          {mostrarSenha && (
+            <p className="text-[12.5px] text-texto-suave">
+              Com e-mail e senha, o login é criado na hora: passe os dois para a pessoa. Com senha em branco, ela mesma cria a conta com este e-mail e o acesso é liberado sozinho.
+            </p>
+          )}
 
           {temAcesso && !emailMudou && (
             <p className="flex items-center gap-2 rounded-xl bg-sucesso-fundo px-3 py-2 text-[12.5px] font-medium text-sucesso">
               <ShieldCheck className="size-4" aria-hidden />{ehVoce ? 'Este é você. Acesso ativo.' : 'Já tem acesso ao sistema com este e-mail.'}
             </p>
-          )}
-
-          {!emailLimpo && !temAcesso && (
-            <p className="rounded-xl bg-creme px-3 py-2 text-[12.5px] text-texto-suave">
-              Preencha o e-mail para criar o login: aparece o campo de <strong>senha inicial</strong>, que você define e passa para a pessoa.
-            </p>
-          )}
-
-          {podeCriarLogin && (
-            <>
-              <Interruptor id="pe-criar" marcado={criarLogin} onChange={setCriarLogin} rotulo="Criar o login agora com uma senha inicial"
-                descricao="Você define a senha e passa para a pessoa. Desmarcado, ela mesma cria a conta com este e-mail e o acesso é liberado sozinho." />
-              {criarLogin && (
-                <Campo rotulo="Senha inicial" htmlFor="pe-senha" obrigatorio erro={erros.senha}
-                  dica={erros.senha ? undefined : 'Mínimo de 8 caracteres. A pessoa pode trocar depois em “Esqueci a senha”.'}
-                  acao={<button type="button" onClick={() => { setSenha(gerarSenha()); setVerSenha(true) }}
-                    className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-cacau-600 hover:underline"><Wand2 className="size-3.5" />Gerar</button>}>
-                  <div className="relative">
-                    <Input id="pe-senha" type={verSenha ? 'text' : 'password'} autoComplete="new-password" value={senha}
-                      onChange={(e) => setSenha(e.target.value)} aria-invalid={!!erros.senha} className="pr-10" />
-                    <button type="button" onClick={() => setVerSenha((v) => !v)} aria-label={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
-                      className="absolute top-1/2 right-2 grid size-7 -translate-y-1/2 place-items-center rounded-lg text-cinza hover:text-choco-700">
-                      {verSenha ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                    </button>
-                  </div>
-                </Campo>
-              )}
-            </>
           )}
         </section>
 
