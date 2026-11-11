@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, ClipboardList, CalendarHeart, Cake, Package, Users, Gift, Wallet, BarChart3, Settings, Globe,
+  LayoutDashboard, ClipboardList, CalendarHeart, Cake, Package, Users, Gift, Wallet, BarChart3, Settings, Globe, Handshake,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -63,6 +63,11 @@ export const navegacao: ItemNavegacao[] = [
     rota: '/relatorios', rotulo: 'Relatórios', icone: BarChart3, fase: 7,
     descricao: 'Relatórios gerenciais com exportação para PDF e Excel.',
     recursos: ['Vendas e lucro por produto', 'Clientes recorrentes e inativos', 'Consumo e desperdício de insumos', 'Desempenho da fidelidade'],
+  },
+  {
+    rota: '/equipe', rotulo: 'Sócios e equipe', icone: Handshake, fase: 1,
+    descricao: 'Proprietário, sócios e colaboradores com a parte de cada um no lucro.',
+    recursos: ['Percentual do lucro por pessoa', 'Valor fixo mensal para colaboradores', 'Simulação da divisão do lucro'],
   },
   { rota: '/configuracoes', rotulo: 'Configurações', icone: Settings, fase: 1, descricao: 'Dados da confeitaria, parâmetros e perfil.', recursos: [] },
 ]

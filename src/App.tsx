@@ -21,6 +21,7 @@ const FinanceiroPage = lazy(() => import('@/features/financeiro/FinanceiroPage')
 const FidelidadePage = lazy(() => import('@/features/fidelidade/FidelidadePage').then((m) => ({ default: m.FidelidadePage })))
 const SitePage = lazy(() => import('@/features/site/SitePage').then((m) => ({ default: m.SitePage })))
 const RelatoriosPage = lazy(() => import('@/features/relatorios/RelatoriosPage').then((m) => ({ default: m.RelatoriosPage })))
+const EquipePage = lazy(() => import('@/features/equipe/EquipePage').then((m) => ({ default: m.EquipePage })))
 const SitePublico = lazy(() => import('@/features/site/SitePublico').then((m) => ({ default: m.SitePublico })))
 
 function TelaCarregando() {
@@ -96,6 +97,7 @@ export default function App() {
             <Route path="fidelidade" element={<FidelidadePage />} />
             <Route path="site" element={<SitePage />} />
             <Route path="relatorios" element={<RelatoriosPage />} />
+            <Route path="equipe" element={<EquipePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

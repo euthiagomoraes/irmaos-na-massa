@@ -2570,6 +2570,62 @@ export type Database = {
           },
         ]
       }
+      pessoas_equipe: {
+        Row: {
+          ativo: boolean
+          chave_pix: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          nome: string
+          observacoes: string | null
+          participacao_lucro: number
+          remuneracao: string
+          telefone: string | null
+          tipo: string
+          updated_at: string
+          valor_fixo: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          chave_pix?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          participacao_lucro?: number
+          remuneracao?: string
+          telefone?: string | null
+          tipo: string
+          updated_at?: string
+          valor_fixo?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          chave_pix?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          participacao_lucro?: number
+          remuneracao?: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+          valor_fixo?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pessoas_equipe_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedidos: {
         Row: {
           cancelado_em: string | null

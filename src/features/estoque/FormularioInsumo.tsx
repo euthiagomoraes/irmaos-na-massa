@@ -1,12 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { ChevronDown } from 'lucide-react'
 import { supabase, type Tabela } from '@/lib/supabase'
 import { useEmpresa } from '@/contexts/AuthContext'
 import { useCategoriasInsumos, useFornecedores, useInvalidar } from '@/lib/consultas'
 import { Button, Campo, Input, Select, Textarea } from '@/components/ui'
 import { Interruptor, Modal } from '@/components/ui/estrutura'
-import { lerNumero, mensagemErro, unidadesMedida } from '@/lib/utils'
+import { cn, lerNumero, mensagemErro, unidadesMedida } from '@/lib/utils'
 
 export type Insumo = Tabela<'insumos'>
 
@@ -18,6 +19,10 @@ interface Valores {
 
 const num = (v: string) => { const n = lerNumero(v); return Number.isNaN(n) ? 'Número inválido' : n < 0 ? 'Não pode ser negativo' : true }
 
+/** O insumo tem algo preenchido nos campos opcionais? */
+const temDetalhes = (i?: Insumo | null) => !!i && !!(i.categoria_id || i.fornecedor_padrao_id || i.codigo || i.local_armazenamento
+  || i.densidade_g_ml || i.peso_unitario_g || i.controla_validade || i.e_embalagem || i.observacoes)
+
 export function FormularioInsumo({ aberto, onAbertoChange, insumo, onSalvo }: {
   aberto: boolean; onAbertoChange: (v: boolean) => void; insumo?: Insumo | null; onSalvo?: (id: string) => void
 }) {
@@ -26,9 +31,11 @@ export function FormularioInsumo({ aberto, onAbertoChange, insumo, onSalvo }: {
   const { data: categorias = [] } = useCategoriasInsumos()
   const { data: fornecedores = [] } = useFornecedores()
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<Valores>()
+  const [detalhes, setDetalhes] = useState(false)
 
   useEffect(() => {
     if (!aberto) return
+    setDetalhes(temDetalhes(insumo))
     reset({
       nome: insumo?.nome ?? '', codigo: insumo?.codigo ?? '', categoria_id: insumo?.categoria_id ?? '',
       unidade_codigo: insumo?.unidade_codigo ?? 'g',
@@ -63,52 +70,62 @@ export function FormularioInsumo({ aberto, onAbertoChange, insumo, onSalvo }: {
   })
 
   return (
-    <Modal aberto={aberto} onAbertoChange={onAbertoChange} titulo={insumo ? 'Editar insumo' : 'Novo insumo'}
-      descricao="Ingredientes, embalagens e materiais. O saldo muda apenas por entradas e saídas." onSubmit={salvar}
+    <Modal aberto={aberto} onAbertoChange={onAbertoChange} titulo={insumo ? 'Editar insumo' : 'Novo insumo'} largura="max-w-lg"
+      descricao="Só o nome é obrigatório. O saldo entra pelas movimentações." onSubmit={salvar}
       rodape={<><Button variante="fantasma" onClick={() => onAbertoChange(false)}>Cancelar</Button><Button type="submit" carregando={isSubmitting}>{insumo ? 'Salvar' : 'Cadastrar insumo'}</Button></>}>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Campo rotulo="Nome" htmlFor="i-nome" obrigatorio erro={errors.nome?.message} className="md:col-span-2">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Campo rotulo="Nome" htmlFor="i-nome" obrigatorio erro={errors.nome?.message} className="sm:col-span-2">
           <Input id="i-nome" autoFocus placeholder="Ex.: Leite condensado" aria-invalid={!!errors.nome}
             {...register('nome', { validate: (s) => s.trim().length >= 2 || 'Informe o nome' })} />
         </Campo>
-        <Campo rotulo="Categoria" htmlFor="i-cat">
-          <Select id="i-cat" {...register('categoria_id')}>
-            <option value="">Sem categoria</option>
-            {categorias.filter((c) => c.ativo).map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </Select>
-        </Campo>
-        <Campo rotulo="Unidade de estoque" htmlFor="i-un" obrigatorio dica={insumo && insumo.quantidade_atual !== 0 ? 'Só pode mudar com o saldo zerado.' : 'Unidade em que o saldo é controlado.'}>
+        <Campo rotulo="Unidade" htmlFor="i-un" obrigatorio dica={insumo && insumo.quantidade_atual !== 0 ? 'Só pode mudar com o saldo zerado.' : undefined}>
           <Select id="i-un" {...register('unidade_codigo')}>
             {unidadesMedida.map((u) => <option key={u.codigo} value={u.codigo}>{u.nome}</option>)}
           </Select>
         </Campo>
-        <Campo rotulo={`Custo por ${unidade || 'unidade'} (R$)`} htmlFor="i-custo" erro={errors.custo_unitario?.message}
-          dica="Atualizado automaticamente nas entradas com custo.">
+        <Campo rotulo={`Custo por ${unidade || 'unidade'} (R$)`} htmlFor="i-custo" erro={errors.custo_unitario?.message}>
           <Input id="i-custo" inputMode="decimal" placeholder="0,00" {...register('custo_unitario', { validate: num })} />
         </Campo>
-        <Campo rotulo={`Estoque mínimo (${unidade || 'un'})`} htmlFor="i-min" erro={errors.estoque_minimo?.message} dica="Abaixo disso, aparece o alerta.">
+        <Campo rotulo={`Avisar quando tiver menos de (${unidade || 'un'})`} htmlFor="i-min" erro={errors.estoque_minimo?.message} className="sm:col-span-2">
           <Input id="i-min" inputMode="decimal" placeholder="0" {...register('estoque_minimo', { validate: num })} />
         </Campo>
-        <Campo rotulo="Fornecedor padrão" htmlFor="i-forn">
-          <Select id="i-forn" {...register('fornecedor_padrao_id')}>
-            <option value="">Nenhum</option>
-            {fornecedores.filter((f) => f.ativo).map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
-          </Select>
-        </Campo>
-        <Campo rotulo="Código" htmlFor="i-cod"><Input id="i-cod" {...register('codigo')} /></Campo>
-        <Campo rotulo="Local de armazenamento" htmlFor="i-local"><Input id="i-local" placeholder="Ex.: Geladeira 2" {...register('local_armazenamento')} /></Campo>
-        <Campo rotulo="Densidade (g/ml)" htmlFor="i-dens" erro={errors.densidade_g_ml?.message} dica="Permite converter entre peso e volume (ex.: leite ≈ 1,03).">
-          <Input id="i-dens" inputMode="decimal" {...register('densidade_g_ml', { validate: (s) => !s.trim() || num(s) })} />
-        </Campo>
-        <Campo rotulo="Peso de 1 unidade (g)" htmlFor="i-peso" erro={errors.peso_unitario_g?.message} dica="Permite converter unidade ↔ gramas (ex.: ovo ≈ 50 g).">
-          <Input id="i-peso" inputMode="decimal" {...register('peso_unitario_g', { validate: (s) => !s.trim() || num(s) })} />
-        </Campo>
-        <Interruptor id="i-val" marcado={watch('controla_validade') ?? false} onChange={(v) => setValue('controla_validade', v)}
-          rotulo="Controlar lotes e validade" descricao="Cada entrada vira um lote; as saídas consomem primeiro o que vence antes." />
-        <Interruptor id="i-emb" marcado={watch('e_embalagem') ?? false} onChange={(v) => setValue('e_embalagem', v)}
-          rotulo="É embalagem ou material" descricao="Caixas, fitas, velas, topos, descartáveis." />
-        <Campo rotulo="Observações" htmlFor="i-obs" className="md:col-span-2"><Textarea id="i-obs" className="min-h-16" {...register('observacoes')} /></Campo>
       </div>
+
+      <button type="button" onClick={() => setDetalhes((d) => !d)} aria-expanded={detalhes} aria-controls="i-detalhes"
+        className="mt-5 flex w-full items-center gap-1.5 rounded-xl border border-borda px-3.5 py-2.5 text-left text-[13.5px] font-semibold text-choco-700 hover:bg-creme/50">
+        Mais detalhes <span className="font-normal text-texto-suave">· categoria, fornecedor, validade…</span>
+        <ChevronDown className={cn('ml-auto size-4 shrink-0 transition-transform', detalhes && 'rotate-180')} aria-hidden />
+      </button>
+
+      {detalhes && (
+        <div id="i-detalhes" className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Campo rotulo="Categoria" htmlFor="i-cat">
+            <Select id="i-cat" {...register('categoria_id')}>
+              <option value="">Sem categoria</option>
+              {categorias.filter((c) => c.ativo).map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+            </Select>
+          </Campo>
+          <Campo rotulo="Fornecedor" htmlFor="i-forn">
+            <Select id="i-forn" {...register('fornecedor_padrao_id')}>
+              <option value="">Nenhum</option>
+              {fornecedores.filter((f) => f.ativo).map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
+            </Select>
+          </Campo>
+          <Campo rotulo="Código" htmlFor="i-cod"><Input id="i-cod" {...register('codigo')} /></Campo>
+          <Campo rotulo="Onde fica guardado" htmlFor="i-local"><Input id="i-local" placeholder="Ex.: Geladeira 2" {...register('local_armazenamento')} /></Campo>
+          <Campo rotulo="Densidade (g/ml)" htmlFor="i-dens" erro={errors.densidade_g_ml?.message} dica="Converte peso ↔ volume (leite ≈ 1,03).">
+            <Input id="i-dens" inputMode="decimal" {...register('densidade_g_ml', { validate: (s) => !s.trim() || num(s) })} />
+          </Campo>
+          <Campo rotulo="Peso de 1 unidade (g)" htmlFor="i-peso" erro={errors.peso_unitario_g?.message} dica="Converte unidade ↔ gramas (ovo ≈ 50 g).">
+            <Input id="i-peso" inputMode="decimal" {...register('peso_unitario_g', { validate: (s) => !s.trim() || num(s) })} />
+          </Campo>
+          <Interruptor id="i-val" marcado={watch('controla_validade') ?? false} onChange={(v) => setValue('controla_validade', v)}
+            rotulo="Controlar validade" descricao="Cada entrada vira um lote; sai primeiro o que vence antes." />
+          <Interruptor id="i-emb" marcado={watch('e_embalagem') ?? false} onChange={(v) => setValue('e_embalagem', v)}
+            rotulo="É embalagem ou material" descricao="Caixas, fitas, velas, topos, descartáveis." />
+          <Campo rotulo="Observações" htmlFor="i-obs" className="sm:col-span-2"><Textarea id="i-obs" className="min-h-16" {...register('observacoes')} /></Campo>
+        </div>
+      )}
     </Modal>
   )
 }
