@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Handshake, KeyRound, Lock, Plus } from 'lucide-react'
+import { Handshake, KeyRound, Lock, Plus, ShieldCheck } from 'lucide-react'
 import { exigir, supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa } from '@/contexts/AuthContext'
 import { Badge, Button, Card, CardTitulo, Carregando, EstadoErro, EstadoVazio, Input } from '@/components/ui'
@@ -167,6 +167,11 @@ export function EquipePage() {
           </Card>
         </>
       )}
+
+      <p className="flex items-start gap-2 rounded-xl bg-creme px-4 py-3 text-[12.5px] text-texto-suave">
+        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-cacau-600" aria-hidden />
+        Cada perfil de acesso é aplicado diretamente no banco de dados (Row Level Security): mesmo fora do sistema, ninguém vê ou altera o que o seu perfil não permite.
+      </p>
 
       <FormularioPessoa aberto={formAberto} onAbertoChange={setFormAberto} pessoa={editando} pessoas={pessoas} />
     </div>
