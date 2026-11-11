@@ -9,8 +9,9 @@ import { cn, formatarMoeda, iniciais, isoLocal, lerNumero, mensagemErro } from '
 import { FormularioPessoa, rotuloTipo, type Pessoa, type TipoPessoa } from './FormularioPessoa'
 
 const cores = ['bg-cacau-600', 'bg-rosa-500', 'bg-dourado-500', 'bg-oliva-700', 'bg-rosa-300', 'bg-dourado-600', 'bg-choco-800']
-const tomTipo: Record<TipoPessoa, 'dourado' | 'rosa' | 'neutro'> = { proprietario: 'dourado', socio: 'rosa', colaborador: 'neutro' }
-const ordemTipo: Record<TipoPessoa, number> = { proprietario: 0, socio: 1, colaborador: 2 }
+const tomTipo: Record<TipoPessoa, 'dourado' | 'neutro'> = { socio: 'dourado', colaborador: 'neutro' }
+const tipoDe = (p: Pessoa): TipoPessoa => (p.tipo === 'colaborador' ? 'colaborador' : 'socio')
+const ordemTipo: Record<TipoPessoa, number> = { socio: 0, colaborador: 1 }
 const pct = (n: number) => `${n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`
 
 function descricaoRemuneracao(p: Pessoa) {
@@ -50,7 +51,7 @@ export function EquipePage() {
 
   const pessoas = useMemo(() => pessoasQ.data ?? [], [pessoasQ.data])
   const ativas = useMemo(() => pessoas.filter((p) => p.ativo)
-    .sort((a, b) => ordemTipo[a.tipo as TipoPessoa] - ordemTipo[b.tipo as TipoPessoa] || Number(b.participacao_lucro) - Number(a.participacao_lucro)), [pessoas])
+    .sort((a, b) => ordemTipo[tipoDe(a)] - ordemTipo[tipoDe(b)] || Number(b.participacao_lucro) - Number(a.participacao_lucro)), [pessoas])
   const inativas = pessoas.filter((p) => !p.ativo)
 
   const distribuido = ativas.reduce((s, p) => s + Number(p.participacao_lucro), 0)
@@ -67,7 +68,7 @@ export function EquipePage() {
       <div className="space-y-5">
         <CabecalhoPagina titulo="Sócios e equipe" />
         <Card><EstadoVazio icone={<Lock className="size-6" />} titulo="Acesso restrito"
-          descricao="A divisão do lucro e a remuneração da equipe só aparecem para o proprietário e administradores." /></Card>
+          descricao="A divisão do lucro e a remuneração da equipe só aparecem para administradores do sistema." /></Card>
       </div>
     )
   }
@@ -82,7 +83,7 @@ export function EquipePage() {
       ) : pessoas.length === 0 ? (
         <Card>
           <EstadoVazio icone={<Handshake className="size-6" />} titulo="Ninguém cadastrado ainda"
-            descricao="Cadastre você como proprietário, depois os sócios e colaboradores com a parte de cada um no lucro (ex.: 60%, 30% e 10%)."
+            descricao="Cadastre os sócios (você incluído) e os colaboradores com a parte de cada um no lucro — ex.: 60%, 30% e 10%."
             acao={<Button onClick={() => abrir(null)}><Plus className="size-4" />Cadastrar o primeiro</Button>} />
         </Card>
       ) : (
@@ -144,7 +145,7 @@ export function EquipePage() {
                       <span className="min-w-0">
                         <span className="block truncate text-[14px] font-semibold text-choco-800">{p.nome}</span>
                         <span className="flex flex-wrap gap-1">
-                          <Badge tom={tomTipo[p.tipo as TipoPessoa]} className="py-0 text-[11px]">{rotuloTipo[p.tipo as TipoPessoa]}</Badge>
+                          <Badge tom={tomTipo[tipoDe(p)]} className="py-0 text-[11px]">{rotuloTipo[tipoDe(p)]}</Badge>
                           {!p.ativo && <Badge className="py-0 text-[11px]">Inativo</Badge>}
                           <span className="text-[12px] text-texto-suave md:hidden">{descricaoRemuneracao(p)}</span>
                         </span>

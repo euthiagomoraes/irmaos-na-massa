@@ -8,10 +8,10 @@ import { Interruptor, Modal } from '@/components/ui/estrutura'
 import { cn, lerNumero, mensagemErro } from '@/lib/utils'
 
 export type Pessoa = Tabela<'pessoas_equipe'>
-export type TipoPessoa = 'proprietario' | 'socio' | 'colaborador'
+export type TipoPessoa = 'socio' | 'colaborador'
 export type Remuneracao = 'percentual' | 'fixo' | 'misto'
 
-export const rotuloTipo: Record<TipoPessoa, string> = { proprietario: 'Proprietário', socio: 'Sócio', colaborador: 'Colaborador' }
+export const rotuloTipo: Record<TipoPessoa, string> = { socio: 'Sócio', colaborador: 'Colaborador' }
 const rotuloRemuneracao: Record<Remuneracao, string> = { percentual: '% do lucro', fixo: 'Valor fixo', misto: 'Fixo + % do lucro' }
 
 const pctTexto = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
@@ -47,12 +47,11 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
   const [erros, setErros] = useState<Record<string, string>>({})
   const [salvando, setSalvando] = useState(false)
 
-  const temProprietario = pessoas.some((p) => p.ativo && p.tipo === 'proprietario' && p.id !== pessoa?.id)
 
   useEffect(() => {
     if (!aberto) return
     setNome(pessoa?.nome ?? '')
-    setTipo((pessoa?.tipo as TipoPessoa) ?? (temProprietario ? 'socio' : 'proprietario'))
+    setTipo(pessoa?.tipo === 'colaborador' ? 'colaborador' : 'socio')
     setRemuneracao((pessoa?.remuneracao as Remuneracao) ?? 'percentual')
     setPct(pessoa && pessoa.participacao_lucro ? pctTexto(Number(pessoa.participacao_lucro)) : '')
     setFixo(pessoa?.valor_fixo ? String(pessoa.valor_fixo).replace('.', ',') : '')
@@ -75,7 +74,6 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
     const f = usaFixo ? lerNumero(fixo) : null
     const novos: Record<string, string> = {}
     if (nome.trim().length < 2) novos.nome = 'Informe o nome'
-    if (tipo === 'proprietario' && temProprietario) novos.tipo = 'Já existe um proprietário ativo.'
     if (usaPct) {
       if (Number.isNaN(n) || n <= 0) novos.pct = 'Informe um percentual maior que zero'
       else if (n > 100) novos.pct = 'Máximo de 100%'
@@ -96,7 +94,7 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
       ? await supabase.from('pessoas_equipe').update(dados).eq('id', pessoa.id)
       : await supabase.from('pessoas_equipe').insert({ ...dados, empresa_id: empresa.id })
     setSalvando(false)
-    if (r.error) return void toast.error(r.error.code === '23505' ? 'Já existe um proprietário ativo.' : mensagemErro(r.error))
+    if (r.error) return void toast.error(mensagemErro(r.error))
     await invalidar('pessoas_equipe')
     toast.success(pessoa ? 'Cadastro atualizado.' : `${rotuloTipo[tipo]} cadastrado.`)
     onAbertoChange(false)
@@ -112,9 +110,9 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
           <Input id="pe-nome" autoFocus value={nome} onChange={(e) => setNome(e.target.value)} aria-invalid={!!erros.nome} />
         </Campo>
 
-        <Campo rotulo="Função" erro={erros.tipo}>
+        <Campo rotulo="Função">
           <Escolha rotulo="Função" valor={tipo} onChange={setTipo}
-            opcoes={(['proprietario', 'socio', 'colaborador'] as TipoPessoa[]).map((id) => ({ id, rotulo: rotuloTipo[id] }))} />
+            opcoes={(['socio', 'colaborador'] as TipoPessoa[]).map((id) => ({ id, rotulo: rotuloTipo[id] }))} />
         </Campo>
 
         {tipo === 'colaborador' && (

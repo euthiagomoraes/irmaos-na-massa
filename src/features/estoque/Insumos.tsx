@@ -1,18 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInCalendarDays, format } from 'date-fns'
-import { AlertTriangle, ArrowLeftRight, Package, Pencil, Plus, Power, RotateCcw } from 'lucide-react'
+import { AlertTriangle, ArrowLeftRight, Gift, Package, Pencil, Plus, Power, RotateCcw, Wheat } from 'lucide-react'
 import { toast } from 'sonner'
 import { exigir, supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa } from '@/contexts/AuthContext'
 import { useCategoriasInsumos, useConfiguracoes, useFornecedores, useInsumos, useInvalidar } from '@/lib/consultas'
-import { Badge, Button, Card, Carregando, EstadoErro, EstadoVazio, Select } from '@/components/ui'
-import { CabecalhoTabela, CampoBusca, DialogoMotivo, Gaveta, Kpi, LinhaClicavel, Pilulas, Secao } from '@/components/ui/estrutura'
+import { Badge, Button, Card, Carregando, EstadoErro, EstadoVazio } from '@/components/ui'
+import { Abas, CabecalhoTabela, CampoBusca, DialogoMotivo, Gaveta, Kpi, LinhaClicavel, Pilulas, Secao } from '@/components/ui/estrutura'
 import { cn, dataLocal, formatarMoeda, formatarQuantidade, mensagemErro, normalizarTexto } from '@/lib/utils'
 import { FormularioInsumo, type Insumo } from './FormularioInsumo'
 import { Movimentar, type TipoMov } from './Movimentar'
 
-type Filtro = 'todos' | 'baixo' | 'vencendo' | 'embalagens' | 'inativos'
+type Filtro = 'todos' | 'baixo' | 'vencendo' | 'inativos'
+type Grupo = 'insumos' | 'embalagens'
 
 export const rotulosMov: Record<string, string> = {
   entrada: 'Entrada', saida: 'Saída', ajuste: 'Inventário', producao: 'Produção', perda: 'Perda', estorno: 'Estorno',
@@ -38,7 +39,7 @@ export function Insumos() {
   const { data: lotesVencendo = [] } = useLotesVencendo()
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState<Filtro>('todos')
-  const [categoria, setCategoria] = useState('')
+  const [grupo, setGrupo] = useState<Grupo>('insumos')
   const [formAberto, setFormAberto] = useState(false)
   const [editando, setEditando] = useState<Insumo | null>(null)
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null)
@@ -51,45 +52,48 @@ export function Insumos() {
   }, [lotesVencendo])
 
   const baixo = (i: Insumo) => i.ativo && Number(i.estoque_minimo) > 0 && Number(i.quantidade_atual) <= Number(i.estoque_minimo)
-  const ativos = insumos.filter((i) => i.ativo)
+  const ehEmbalagem = grupo === 'embalagens'
+  const doGrupo = insumos.filter((i) => i.e_embalagem === ehEmbalagem)
+  const ativos = doGrupo.filter((i) => i.ativo)
   const contagem = {
     todos: ativos.length, baixo: ativos.filter(baixo).length, vencendo: ativos.filter((i) => vencendoPorInsumo.has(i.id)).length,
-    embalagens: ativos.filter((i) => i.e_embalagem).length, inativos: insumos.length - ativos.length,
+    inativos: doGrupo.length - ativos.length,
   }
+  const totalGrupo = (emb: boolean) => insumos.filter((i) => i.ativo && i.e_embalagem === emb).length
 
   const lista = useMemo(() => {
     const t = normalizarTexto(busca.trim())
     return insumos.filter((i) => {
+      if (i.e_embalagem !== ehEmbalagem) return false
       if (filtro === 'inativos' ? i.ativo : !i.ativo) return false
       if (filtro === 'baixo' && !baixo(i)) return false
       if (filtro === 'vencendo' && !vencendoPorInsumo.has(i.id)) return false
-      if (filtro === 'embalagens' && !i.e_embalagem) return false
-      if (categoria && i.categoria_id !== categoria) return false
       return !t || normalizarTexto(i.nome).includes(t) || normalizarTexto(i.codigo ?? '').includes(t)
     })
-  }, [insumos, busca, filtro, categoria, vencendoPorInsumo])
+  }, [insumos, busca, filtro, ehEmbalagem, vencendoPorInsumo])
+  const termo = ehEmbalagem ? 'embalagem' : 'insumo'
 
   const nomeCategoria = (id: string | null) => categorias.find((c) => c.id === id)?.nome
   const selecionado = insumos.find((i) => i.id === selecionadoId) ?? null
 
   return (
     <div className="space-y-5">
+      <Abas ativa={grupo} onChange={(g) => { setGrupo(g); setFiltro('todos') }} abas={[
+        { id: 'insumos', rotulo: 'Insumos', icone: <Wheat className="size-4" />, contagem: totalGrupo(false) },
+        { id: 'embalagens', rotulo: 'Embalagens', icone: <Gift className="size-4" />, contagem: totalGrupo(true) },
+      ]} />
+
       <Card className="p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <CampoBusca valor={busca} onChange={setBusca} placeholder="Buscar insumo por nome ou código" />
-          <Select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="h-9 rounded-full text-[13px] lg:w-52" aria-label="Categoria">
-            <option value="">Todas as categorias</option>
-            {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </Select>
-          <Button onClick={() => { setEditando(null); setFormAberto(true) }}><Plus className="size-4" />Novo insumo</Button>
+          <CampoBusca valor={busca} onChange={setBusca} placeholder={`Buscar ${termo} pelo nome`} />
+          <Button onClick={() => { setEditando(null); setFormAberto(true) }}><Plus className="size-4" />{ehEmbalagem ? 'Nova embalagem' : 'Novo insumo'}</Button>
         </div>
         <div className="mt-3">
           <Pilulas ativa={filtro} onChange={setFiltro} opcoes={[
-            { id: 'todos', rotulo: 'Todos', contagem: contagem.todos },
-            { id: 'baixo', rotulo: 'Estoque baixo', contagem: contagem.baixo },
-            { id: 'vencendo', rotulo: 'Vencendo', contagem: contagem.vencendo },
-            { id: 'embalagens', rotulo: 'Embalagens', contagem: contagem.embalagens },
-            { id: 'inativos', rotulo: 'Inativos', contagem: contagem.inativos },
+            { id: 'todos' as Filtro, rotulo: 'Todos', contagem: contagem.todos },
+            { id: 'baixo' as Filtro, rotulo: 'Estoque baixo', contagem: contagem.baixo },
+            ...(contagem.vencendo > 0 ? [{ id: 'vencendo' as Filtro, rotulo: 'Vencendo', contagem: contagem.vencendo }] : []),
+            ...(contagem.inativos > 0 ? [{ id: 'inativos' as Filtro, rotulo: 'Inativos', contagem: contagem.inativos }] : []),
           ]} />
         </div>
       </Card>
@@ -97,16 +101,17 @@ export function Insumos() {
       <Card className="overflow-hidden">
         {isLoading ? <Carregando texto="Carregando insumos…" /> : error ? (
           <div className="p-5"><EstadoErro mensagem={mensagemErro(error)} onTentarNovamente={() => void refetch()} /></div>
-        ) : insumos.length === 0 ? (
-          <EstadoVazio icone={<Package className="size-6" />} titulo="Nenhum insumo cadastrado"
-            descricao="Cadastre ingredientes e embalagens para controlar o estoque e calcular o custo das receitas."
-            acao={<Button onClick={() => { setEditando(null); setFormAberto(true) }}><Plus className="size-4" />Cadastrar o primeiro</Button>} />
+        ) : doGrupo.length === 0 ? (
+          <EstadoVazio icone={ehEmbalagem ? <Gift className="size-6" /> : <Package className="size-6" />}
+            titulo={ehEmbalagem ? 'Nenhuma embalagem cadastrada' : 'Nenhum insumo cadastrado'}
+            descricao={ehEmbalagem ? 'Caixas, fitas, topos, velas e descartáveis.' : 'Ingredientes usados nas receitas, como farinha, leite e chocolate.'}
+            acao={<Button onClick={() => { setEditando(null); setFormAberto(true) }}><Plus className="size-4" />Cadastrar {ehEmbalagem ? 'a primeira' : 'o primeiro'}</Button>} />
         ) : lista.length === 0 ? (
-          <EstadoVazio titulo="Nenhum insumo neste filtro" />
+          <EstadoVazio titulo="Nada neste filtro" />
         ) : (
           <>
             <CabecalhoTabela className="grid-cols-[minmax(0,2fr)_9rem_9rem_8rem_6.5rem]">
-              <span>Insumo</span><span className="text-right">Saldo</span><span className="text-right">Mínimo</span><span className="text-right">Custo</span><span />
+              <span>{ehEmbalagem ? 'Embalagem' : 'Insumo'}</span><span className="text-right">Saldo</span><span className="text-right">Mínimo</span><span className="text-right">Custo</span><span />
             </CabecalhoTabela>
             <ul className="divide-y divide-borda/70">
               {lista.map((i) => {
@@ -140,7 +145,8 @@ export function Insumos() {
         )}
       </Card>
 
-      <FormularioInsumo aberto={formAberto} onAbertoChange={setFormAberto} insumo={editando} onSalvo={(id) => setSelecionadoId(id)} />
+      <FormularioInsumo aberto={formAberto} onAbertoChange={setFormAberto} insumo={editando} embalagemInicial={ehEmbalagem}
+        onSalvo={(id) => setSelecionadoId(id)} />
       <Movimentar insumo={mov?.insumo ?? null} tipoInicial={mov?.tipo} onFechar={() => setMov(null)} />
       <FichaInsumo insumo={selecionado} onFechar={() => setSelecionadoId(null)}
         onEditar={(i) => { setEditando(i); setFormAberto(true) }} onMovimentar={(i, t) => setMov({ insumo: i, tipo: t })} />
