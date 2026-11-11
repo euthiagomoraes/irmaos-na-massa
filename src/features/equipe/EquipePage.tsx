@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Handshake, KeyRound, Lock, Plus, ShieldCheck } from 'lucide-react'
+import { Handshake, KeyRound, Lock, Pencil, Plus, ShieldCheck, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { exigir, supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa } from '@/contexts/AuthContext'
 import { Badge, Button, Card, CardTitulo, Carregando, EstadoErro, EstadoVazio, Input } from '@/components/ui'
-import { CabecalhoPagina, Interruptor, Kpi } from '@/components/ui/estrutura'
+import { CabecalhoPagina, Interruptor, Kpi, Modal } from '@/components/ui/estrutura'
+import { useInvalidar } from '@/lib/consultas'
 import { cn, formatarMoeda, iniciais, isoLocal, lerNumero, mensagemErro } from '@/lib/utils'
 import { FormularioPessoa, rotuloTipo, type Pessoa, type TipoPessoa } from './FormularioPessoa'
 
@@ -23,8 +25,11 @@ function descricaoRemuneracao(p: Pessoa) {
 
 export function EquipePage() {
   const empresa = useEmpresa()
-  const { ehAdmin } = useAuth()
+  const { ehAdmin, usuario } = useAuth()
+  const invalidar = useInvalidar()
   const [formAberto, setFormAberto] = useState(false)
+  const [excluindo, setExcluindo] = useState<Pessoa | null>(null)
+  const [removendo, setRemovendo] = useState(false)
   const [editando, setEditando] = useState<Pessoa | null>(null)
   const [lucroDigitado, setLucroDigitado] = useState<string | null>(null)
   const [descontarFixos, setDescontarFixos] = useState(true)
@@ -62,6 +67,17 @@ export function EquipePage() {
   const recebe = (p: Pessoa) => parte(p) + Number(p.valor_fixo ?? 0)
 
   const abrir = (p: Pessoa | null) => { setEditando(p); setFormAberto(true) }
+
+  const excluir = async () => {
+    if (!excluindo) return
+    setRemovendo(true)
+    const { error } = await supabase.from('pessoas_equipe').delete().eq('id', excluindo.id)
+    setRemovendo(false)
+    if (error) return void toast.error(mensagemErro(error))
+    toast.success(`${excluindo.nome} foi excluído${excluindo.user_id ? ' e o acesso ao sistema, removido' : ''}.`)
+    setExcluindo(null)
+    await invalidar('pessoas_equipe', 'equipe')
+  }
 
   if (!ehAdmin) {
     return (
@@ -131,38 +147,46 @@ export function EquipePage() {
           </Card>
 
           <Card className="overflow-hidden">
-            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_9rem] gap-4 border-b border-borda bg-creme/50 px-5 py-2.5 text-[11.5px] font-semibold tracking-wide text-texto-suave uppercase md:grid">
-              <span>Pessoa</span><span>Como recebe</span><span className="text-right">Recebe na simulação</span>
+            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_9rem_5.5rem] gap-4 border-b border-borda bg-creme/50 px-5 py-2.5 text-[11.5px] font-semibold tracking-wide text-texto-suave uppercase md:grid">
+              <span>Pessoa</span><span>Como recebe</span><span className="text-right">Recebe na simulação</span><span className="sr-only">Ações</span>
             </div>
             <ul className="divide-y divide-borda/70">
-              {[...ativas, ...inativas].map((p) => (
-                <li key={p.id}>
-                  <button type="button" onClick={() => abrir(p)}
-                    className={cn('grid w-full grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 text-left transition-colors outline-none hover:bg-rosa-50 focus-visible:bg-rosa-50 md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_9rem]',
-                      !p.ativo && 'opacity-60')}>
+              {[...ativas, ...inativas].map((p) => {
+                const ehVoce = !!p.user_id && p.user_id === usuario?.id
+                return (
+                  <li key={p.id} className={cn('grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 px-5 py-3.5 transition-colors hover:bg-rosa-50/60 md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_9rem_5.5rem] md:gap-x-4', !p.ativo && 'opacity-60')}>
                     <span className="flex min-w-0 items-center gap-3">
                       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-rosa-100 text-[13px] font-semibold text-cacau-700">{iniciais(p.nome)}</span>
                       <span className="min-w-0">
-                        <span className="block truncate text-[14px] font-semibold text-choco-800">{p.nome}</span>
+                        <span className="block truncate text-[14px] font-semibold text-choco-800">{p.nome}{ehVoce && <span className="font-normal text-texto-suave"> (você)</span>}</span>
                         <span className="flex flex-wrap gap-1">
                           <Badge tom={tomTipo[tipoDe(p)]} className="py-0 text-[11px]">{rotuloTipo[tipoDe(p)]}</Badge>
                           {!p.ativo && <Badge className="py-0 text-[11px]">Inativo</Badge>}
-                          {p.ativo && p.user_id && <Badge tom="sucesso" className="py-0 text-[11px]"><KeyRound className="size-3" />Com acesso</Badge>}
+                          {p.ativo && p.user_id && <Badge tom="sucesso" className="py-0 text-[11px]" title={p.email ?? undefined}><KeyRound className="size-3" />Com acesso</Badge>}
                           {p.ativo && !p.user_id && p.email && <Badge tom="alerta" className="py-0 text-[11px]" title={`Libera quando a pessoa criar a conta com ${p.email}`}>Aguardando cadastro</Badge>}
                           <span className="text-[12px] text-texto-suave md:hidden">{descricaoRemuneracao(p)}</span>
                         </span>
                       </span>
                     </span>
                     <span className="hidden text-[13.5px] text-choco-700 md:block">{descricaoRemuneracao(p)}</span>
-                    <span className="text-right text-[14px] font-semibold tabular-nums">
+                    <span className="hidden text-right text-[14px] font-semibold tabular-nums md:block">
                       {p.ativo ? formatarMoeda(recebe(p)) : '—'}
                       {p.ativo && p.remuneracao === 'misto' && (
                         <span className="block text-[11.5px] font-normal text-texto-suave">{formatarMoeda(p.valor_fixo)} + {formatarMoeda(parte(p))}</span>
                       )}
                     </span>
-                  </button>
-                </li>
-              ))}
+                    <span className="flex justify-end gap-1">
+                      <Button variante="fantasma" tamanho="icone" className="size-9" aria-label={`Editar ${p.nome}`} title="Editar" onClick={() => abrir(p)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button variante="fantasma" tamanho="icone" className="size-9 text-erro disabled:opacity-30" aria-label={`Excluir ${p.nome}`}
+                        title={ehVoce ? 'Você não pode excluir o seu próprio cadastro' : 'Excluir'} disabled={ehVoce} onClick={() => setExcluindo(p)}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           </Card>
         </>
@@ -174,6 +198,20 @@ export function EquipePage() {
       </p>
 
       <FormularioPessoa aberto={formAberto} onAbertoChange={setFormAberto} pessoa={editando} pessoas={pessoas} />
+
+      <Modal aberto={!!excluindo} onAbertoChange={(v) => { if (!v) setExcluindo(null) }} largura="max-w-md"
+        titulo={`Excluir ${excluindo?.nome ?? ''}?`}
+        descricao="Esta ação não pode ser desfeita."
+        rodape={<>
+          <Button variante="fantasma" onClick={() => setExcluindo(null)}>Cancelar</Button>
+          <Button variante="perigo" carregando={removendo} onClick={() => void excluir()}><Trash2 className="size-4" />Excluir</Button>
+        </>}>
+        <ul className="list-disc space-y-1.5 pl-5 text-[13.5px] text-choco-700">
+          <li>O cadastro sai da divisão do lucro{excluindo && Number(excluindo.participacao_lucro) > 0 ? ` e os ${pct(Number(excluindo.participacao_lucro))} voltam a ficar disponíveis` : ''}.</li>
+          {excluindo?.user_id && <li>O acesso ao sistema ({excluindo.email}) é removido na hora.</li>}
+          <li>Se a pessoa só se afastou por um tempo, prefira <strong>editar e desativar</strong>, que mantém o cadastro.</li>
+        </ul>
+      </Modal>
     </div>
   )
 }
