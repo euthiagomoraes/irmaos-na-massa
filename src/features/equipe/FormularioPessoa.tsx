@@ -219,6 +219,12 @@ export function FormularioPessoa({ aberto, onAbertoChange, pessoa, pessoas }: {
             </p>
           )}
 
+          {!emailLimpo && !temAcesso && (
+            <p className="rounded-xl bg-creme px-3 py-2 text-[12.5px] text-texto-suave">
+              Preencha o e-mail para criar o login: aparece o campo de <strong>senha inicial</strong>, que você define e passa para a pessoa.
+            </p>
+          )}
+
           {podeCriarLogin && (
             <>
               <Interruptor id="pe-criar" marcado={criarLogin} onChange={setCriarLogin} rotulo="Criar o login agora com uma senha inicial"
