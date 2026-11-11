@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Building2, SlidersHorizontal, UserRound, Users, Upload, ShieldCheck, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { useAuth, useEmpresa, nomesPapeis, type Papel } from '@/contexts/AuthContext'
+import { useAuth, useEmpresa, nomesPapeis, papeisAtribuiveis, type Papel } from '@/contexts/AuthContext'
 import { Badge, Button, Campo, Card, CardTitulo, Carregando, EstadoErro, Input, Select } from '@/components/ui'
 import { cn, iniciais, mensagemErro } from '@/lib/utils'
 
@@ -277,13 +277,12 @@ function AbaEquipe() {
   })
   if (isLoading) return <Carregando />
   if (error) return <EstadoErro mensagem={mensagemErro(error)} onTentarNovamente={() => void refetch()} />
-  const descricoes: Record<Papel, string> = {
-    proprietario: 'Acesso total, incluindo exclusão da empresa.',
-    administrador: 'Acesso total à gestão e às configurações.',
-    gerente: 'Gestão do dia a dia, exclusões e estornos.',
-    atendente: 'Pedidos, clientes e consultas.',
-    producao: 'Produção, receitas e estoque.',
-  }
+  const descricao = (p: Papel) => p === 'proprietario'
+    ? 'Titular da conta · acesso total, incluindo exclusão da empresa.'
+    : (papeisAtribuiveis.find((a) => a.papel === p) ?? papeisAtribuiveis[1]).descricao
+  // Perfis antigos (gerente/produção) aparecem como Colaborador
+  const valorPerfil = (p: Papel): Papel => (p === 'administrador' ? 'administrador' : 'atendente')
+  const opcoesPerfil = papeisAtribuiveis.map((a) => <option key={a.papel} value={a.papel}>{a.rotulo}</option>)
   return (
     <div className="space-y-4">
       <ul className="divide-y divide-borda rounded-2xl border border-borda">
@@ -297,17 +296,17 @@ function AbaEquipe() {
                   {m.nome ?? 'Sem nome'} {m.user_id === usuario?.id && <span className="font-normal text-texto-suave">(você)</span>}
                   {!m.ativo && <Badge className="ml-2 py-0 text-[11px]">Sem acesso</Badge>}
                 </p>
-                <p className="text-[12.5px] text-texto-suave">{descricoes[m.papel]}</p>
+                <p className="text-[12.5px] text-texto-suave">{descricao(m.papel)}</p>
               </div>
               {editavel ? (
                 <>
-                  <Select aria-label={`Perfil de ${m.nome ?? 'membro'}`} value={m.papel} className="h-9 w-44 text-[13px]"
+                  <Select aria-label={`Perfil de ${m.nome ?? 'membro'}`} value={valorPerfil(m.papel)} className="h-9 w-44 text-[13px]"
                     onChange={(e) => void alterar(m.id, { p_papel: e.target.value as Papel })}>
-                    {(Object.keys(descricoes) as Papel[]).filter((p) => p !== 'proprietario').map((p) => <option key={p} value={p}>{nomesPapeis[p]}</option>)}
+                    {opcoesPerfil}
                   </Select>
                   <Button variante="fantasma" tamanho="sm" onClick={() => void alterar(m.id, { p_ativo: !m.ativo })}>{m.ativo ? 'Remover acesso' : 'Devolver acesso'}</Button>
                 </>
-              ) : <Badge tom={m.papel === 'proprietario' ? 'dourado' : 'neutro'}>{nomesPapeis[m.papel]}</Badge>}
+              ) : <Badge tom={m.papel === 'proprietario' || m.papel === 'administrador' ? 'dourado' : 'neutro'}>{nomesPapeis[m.papel]}</Badge>}
             </li>
           )
         })}
@@ -319,7 +318,7 @@ function AbaEquipe() {
             <Campo rotulo="E-mail da conta" htmlFor="eq-email"><Input id="eq-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@email.com" /></Campo>
             <Campo rotulo="Perfil" htmlFor="eq-papel">
               <Select id="eq-papel" value={papelNovo} onChange={(e) => setPapelNovo(e.target.value as Papel)}>
-                {(Object.keys(descricoes) as Papel[]).filter((p) => p !== 'proprietario').map((p) => <option key={p} value={p}>{nomesPapeis[p]}</option>)}
+                {opcoesPerfil}
               </Select>
             </Campo>
             <Button type="submit" carregando={adicionando} disabled={!email.trim()}>Adicionar</Button>
