@@ -3,19 +3,18 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, SlidersHorizontal, UserRound, Users, Upload, ShieldCheck, Lock } from 'lucide-react'
+import { Building2, SlidersHorizontal, UserRound, Upload, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { useAuth, useEmpresa, nomesPapeis, papeisAtribuiveis, type Papel } from '@/contexts/AuthContext'
-import { Badge, Button, Campo, Card, CardTitulo, Carregando, EstadoErro, Input, Select } from '@/components/ui'
-import { cn, iniciais, mensagemErro } from '@/lib/utils'
+import { useAuth, useEmpresa } from '@/contexts/AuthContext'
+import { Button, Campo, Card, CardTitulo, Carregando, EstadoErro, Input, Select } from '@/components/ui'
+import { cn, mensagemErro } from '@/lib/utils'
 
-type Aba = 'empresa' | 'parametros' | 'perfil' | 'equipe'
+type Aba = 'empresa' | 'parametros' | 'perfil'
 const abas: { id: Aba; rotulo: string; icone: typeof Building2 }[] = [
   { id: 'empresa', rotulo: 'Confeitaria', icone: Building2 },
   { id: 'parametros', rotulo: 'Parâmetros', icone: SlidersHorizontal },
   { id: 'perfil', rotulo: 'Meu perfil', icone: UserRound },
-  { id: 'equipe', rotulo: 'Equipe', icone: Users },
 ]
 
 const opcional = z.string().trim().max(200).optional().or(z.literal(''))
@@ -240,100 +239,6 @@ function AbaPerfil() {
   )
 }
 
-/* ------------------------------------------------------------ Equipe */
-function AbaEquipe() {
-  const empresa = useEmpresa()
-  const { usuario, ehAdmin } = useAuth()
-  const qc = useQueryClient()
-  const [email, setEmail] = useState('')
-  const [papelNovo, setPapelNovo] = useState<Papel>('atendente')
-  const [adicionando, setAdicionando] = useState(false)
-  const atualizarEquipe = () => qc.invalidateQueries({ queryKey: ['equipe', empresa.id] })
-  const adicionar = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return void toast.error('Informe um e-mail válido.')
-    setAdicionando(true)
-    const { error: er } = await supabase.rpc('adicionar_membro', { p_empresa: empresa.id, p_email: email.trim(), p_papel: papelNovo })
-    setAdicionando(false)
-    if (er) return void toast.error(mensagemErro(er))
-    setEmail('')
-    await atualizarEquipe()
-    toast.success('Membro adicionado. No próximo acesso, a pessoa já entra nesta confeitaria.')
-  }
-  const alterar = async (membro: string, campos: { p_papel?: Papel; p_ativo?: boolean }) => {
-    const { error: er } = await supabase.rpc('alterar_membro', { p_membro: membro, ...campos })
-    if (er) return void toast.error(mensagemErro(er))
-    await atualizarEquipe()
-  }
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['equipe', empresa.id],
-    queryFn: async () => {
-      const { data: membros, error } = await supabase.from('empresa_membros').select('id, user_id, papel, ativo, created_at').eq('empresa_id', empresa.id).order('created_at')
-      if (error) throw error
-      const ids = membros.map((m) => m.user_id)
-      const { data: perfis } = await supabase.from('profiles').select('id, nome').in('id', ids)
-      return membros.map((m) => ({ ...m, nome: perfis?.find((p) => p.id === m.user_id)?.nome ?? null }))
-    },
-  })
-  if (isLoading) return <Carregando />
-  if (error) return <EstadoErro mensagem={mensagemErro(error)} onTentarNovamente={() => void refetch()} />
-  const descricao = (p: Papel) => p === 'proprietario'
-    ? 'Titular da conta · acesso total, incluindo exclusão da empresa.'
-    : (papeisAtribuiveis.find((a) => a.papel === p) ?? papeisAtribuiveis[1]).descricao
-  // Perfis antigos (gerente/produção) aparecem como Colaborador
-  const valorPerfil = (p: Papel): Papel => (p === 'administrador' ? 'administrador' : 'atendente')
-  const opcoesPerfil = papeisAtribuiveis.map((a) => <option key={a.papel} value={a.papel}>{a.rotulo}</option>)
-  return (
-    <div className="space-y-4">
-      <ul className="divide-y divide-borda rounded-2xl border border-borda">
-        {data?.map((m) => {
-          const editavel = ehAdmin && m.papel !== 'proprietario' && m.user_id !== usuario?.id
-          return (
-            <li key={m.id} className={cn('flex flex-wrap items-center gap-3 p-4', !m.ativo && 'opacity-60')}>
-              <span className="grid size-10 place-items-center rounded-full bg-rosa-100 text-[13px] font-bold text-cacau-700">{iniciais(m.nome)}</span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-choco-800">
-                  {m.nome ?? 'Sem nome'} {m.user_id === usuario?.id && <span className="font-normal text-texto-suave">(você)</span>}
-                  {!m.ativo && <Badge className="ml-2 py-0 text-[11px]">Sem acesso</Badge>}
-                </p>
-                <p className="text-[12.5px] text-texto-suave">{descricao(m.papel)}</p>
-              </div>
-              {editavel ? (
-                <>
-                  <Select aria-label={`Perfil de ${m.nome ?? 'membro'}`} value={valorPerfil(m.papel)} className="h-9 w-44 text-[13px]"
-                    onChange={(e) => void alterar(m.id, { p_papel: e.target.value as Papel })}>
-                    {opcoesPerfil}
-                  </Select>
-                  <Button variante="fantasma" tamanho="sm" onClick={() => void alterar(m.id, { p_ativo: !m.ativo })}>{m.ativo ? 'Remover acesso' : 'Devolver acesso'}</Button>
-                </>
-              ) : <Badge tom={m.papel === 'proprietario' || m.papel === 'administrador' ? 'dourado' : 'neutro'}>{nomesPapeis[m.papel]}</Badge>}
-            </li>
-          )
-        })}
-      </ul>
-      {ehAdmin && (
-        <form onSubmit={adicionar} className="space-y-3 rounded-2xl border border-dashed border-borda-forte p-4">
-          <p className="text-sm font-semibold text-choco-800">Adicionar pessoa à equipe</p>
-          <div className="grid gap-3 sm:grid-cols-[1fr_12rem_auto] sm:items-end">
-            <Campo rotulo="E-mail da conta" htmlFor="eq-email"><Input id="eq-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@email.com" /></Campo>
-            <Campo rotulo="Perfil" htmlFor="eq-papel">
-              <Select id="eq-papel" value={papelNovo} onChange={(e) => setPapelNovo(e.target.value as Papel)}>
-                {opcoesPerfil}
-              </Select>
-            </Campo>
-            <Button type="submit" carregando={adicionando} disabled={!email.trim()}>Adicionar</Button>
-          </div>
-          <p className="text-[12.5px] text-texto-suave">A pessoa precisa criar a conta no sistema com esse e-mail antes. Depois de adicionada, ela entra direto nesta confeitaria.</p>
-        </form>
-      )}
-      <p className="flex items-start gap-2 rounded-xl bg-creme px-4 py-3 text-[12.5px] text-texto-suave">
-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-cacau-600" />
-        Cada perfil de acesso é aplicado diretamente no banco de dados (Row Level Security): mesmo fora do sistema, ninguém vê ou altera o que o seu perfil não permite.
-      </p>
-    </div>
-  )
-}
-
 /* ------------------------------------------------------------ Página */
 export function ConfiguracoesPage() {
   const [aba, setAba] = useState<Aba>('empresa')
@@ -360,7 +265,6 @@ export function ConfiguracoesPage() {
             {aba === 'empresa' && <AbaEmpresa />}
             {aba === 'parametros' && <AbaParametros />}
             {aba === 'perfil' && <AbaPerfil />}
-            {aba === 'equipe' && <AbaEquipe />}
           </div>
         </Card>
       </div>

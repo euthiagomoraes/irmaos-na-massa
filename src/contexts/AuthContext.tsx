@@ -174,6 +174,7 @@ export function useEmpresa() {
 /**
  * Perfis exibidos: só Sócio e Colaborador.
  * Sócio = proprietario (titular da conta) ou administrador · Colaborador = atendente.
+ * O acesso é dado pelo cadastro em Sócios e equipe (e-mail), não mais em Configurações.
  * gerente/producao não são mais atribuídos (migration 0014); ficam mapeados só por segurança.
  */
 export const nomesPapeis: Record<Papel, string> = {
@@ -183,9 +184,3 @@ export const nomesPapeis: Record<Papel, string> = {
   atendente: 'Colaborador',
   producao: 'Colaborador',
 }
-
-/** Perfis que podem ser atribuídos a quem entra na equipe. */
-export const papeisAtribuiveis = [
-  { papel: 'administrador', rotulo: 'Sócio', descricao: 'Acesso total: gestão, financeiro, configurações e divisão do lucro.' },
-  { papel: 'atendente', rotulo: 'Colaborador', descricao: 'Dia a dia: pedidos, clientes, estoque e produtos. Não exclui, não estorna e não vê o lucro.' },
-] as const satisfies readonly { papel: Papel; rotulo: string; descricao: string }[]

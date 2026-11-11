@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Handshake, Lock, Plus } from 'lucide-react'
+import { Handshake, KeyRound, Lock, Plus } from 'lucide-react'
 import { exigir, supabase } from '@/lib/supabase'
 import { useAuth, useEmpresa } from '@/contexts/AuthContext'
 import { Badge, Button, Card, CardTitulo, Carregando, EstadoErro, EstadoVazio, Input } from '@/components/ui'
@@ -75,7 +75,7 @@ export function EquipePage() {
 
   return (
     <div className="space-y-5">
-      <CabecalhoPagina titulo="Sócios e equipe" descricao="Quem participa do negócio e quanto cada um recebe do lucro."
+      <CabecalhoPagina titulo="Sócios e equipe" descricao="Cadastro único: parte de cada um no lucro e acesso ao sistema por e-mail."
         acoes={<Button onClick={() => abrir(null)}><Plus className="size-4" />Nova pessoa</Button>} />
 
       {pessoasQ.isLoading ? <Card><Carregando texto="Carregando equipe…" /></Card> : pessoasQ.error ? (
@@ -147,6 +147,8 @@ export function EquipePage() {
                         <span className="flex flex-wrap gap-1">
                           <Badge tom={tomTipo[tipoDe(p)]} className="py-0 text-[11px]">{rotuloTipo[tipoDe(p)]}</Badge>
                           {!p.ativo && <Badge className="py-0 text-[11px]">Inativo</Badge>}
+                          {p.ativo && p.user_id && <Badge tom="sucesso" className="py-0 text-[11px]"><KeyRound className="size-3" />Com acesso</Badge>}
+                          {p.ativo && !p.user_id && p.email && <Badge tom="alerta" className="py-0 text-[11px]" title={`Libera quando a pessoa criar a conta com ${p.email}`}>Aguardando cadastro</Badge>}
                           <span className="text-[12px] text-texto-suave md:hidden">{descricaoRemuneracao(p)}</span>
                         </span>
                       </span>

@@ -2575,6 +2575,7 @@ export type Database = {
           ativo: boolean
           chave_pix: string | null
           created_at: string
+          email: string | null
           empresa_id: string
           id: string
           nome: string
@@ -2584,12 +2585,14 @@ export type Database = {
           telefone: string | null
           tipo: string
           updated_at: string
+          user_id: string | null
           valor_fixo: number | null
         }
         Insert: {
           ativo?: boolean
           chave_pix?: string | null
           created_at?: string
+          email?: string | null
           empresa_id: string
           id?: string
           nome: string
@@ -2599,12 +2602,14 @@ export type Database = {
           telefone?: string | null
           tipo: string
           updated_at?: string
+          user_id?: string | null
           valor_fixo?: number | null
         }
         Update: {
           ativo?: boolean
           chave_pix?: string | null
           created_at?: string
+          email?: string | null
           empresa_id?: string
           id?: string
           nome?: string
@@ -2614,6 +2619,7 @@ export type Database = {
           telefone?: string | null
           tipo?: string
           updated_at?: string
+          user_id?: string | null
           valor_fixo?: number | null
         }
         Relationships: [
